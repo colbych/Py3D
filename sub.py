@@ -251,11 +251,11 @@ def multi_color():
     M = Movie()
     d = M.get_fields()
     
-    pring 'Getting Fgiure...'
+    print 'Getting Fgiure...'
     fig = plt.gcf()
     fig.clf()
 
-    pring 'Making subplots...'
+    print 'Making subplots...'
     ax = [fig.add_subplots(6,5,c+1) for c in range(6*5)]
     for a,k in zip(ax,M.movie_vars):
         ims(d,k,a)
