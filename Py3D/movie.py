@@ -24,15 +24,15 @@ class Movie(object):
         self.num        = self._get_movie_num(num)
         self.movie_vars = self._get_movie_vars()
         self.log        = self._load_log()
-        self.ntimes     = len(self.log[self.movie_vars[0]])
+        self.ntimes     = self._get_ntimes()
 
 
     def get_fields(self, vars, time=None):
         """ Loads the field(s) var at for a given time(s)
 
             var can be:
-                a string field name
-                a sequence of string field names
+                a single string field name
+                a list of string field names
                 or simply 'all'
         """
 
@@ -125,46 +125,57 @@ class Movie(object):
         # It seems that Marc Swisdak hates us and wants to be unhappy because 
         # the byte data is unsigned and the doulbe byte is signed so that is 
         # why one has a uint and the other is just int
-        if 'double_byte' in self.param:
-            dat_type = np.dtype('int16')
-            norm = 256**2-1
-            shft = 1.0*256**2/2
-        else: #single byte precision
-            dat_type = np.dtype('uint8')
-            norm = 256-1
-            shft = 0.0
+        if 'four_byte' in self.param:
+            byte_2_real = lambda m : m
+            dat_type = np.dtype('float32')
+        else:
+            if 'double_byte' in self.param:
+                dat_type = np.dtype('int16')
+                norm = 256**2-1
+                shft = 1.0*256**2/2
+            else: #single byte precision
+                dat_type = np.dtype('uint8')
+                norm = 256-1
+                shft = 0.0
 
-        t = 0 # This keeps track of where we are
-        cmin = self.log[var][:,0][time]
-        cmax = self.log[var][:,1][time]
+            t = 0 # This keeps track of where we are
+            cmin = self.log[var][:,0][time]
+            cmax = self.log[var][:,1][time]
+
+            byte_2_real = lambda m : (1.*m.T + shft)*(cmax - cmin)/(1.0*norm) + cmin 
 
         mov = np.memmap(fname, dtype=dat_type, mode='r', shape=movie_shape)
 
         mov = mov[time].view(np.ndarray)
-        mov = (1.*mov.T + shft)*(cmax - cmin)/(1.0*norm) + cmin 
+        mov = byte_2_real(mov)
         mov = np.squeeze(mov)
         return mov
 
 
     def _load_log(self):
         """ Loads the log file for a given set of moives files
-            It creates a dictoary 
+            It creates a dictionary
         """
 
         fname = self.path + self._name_sty.format('log', self.num)
 
-        print "Loading {0}".format(fname)
-        clims = np.loadtxt(fname)
-        
-        if len(clims)%len(self.movie_vars) != 0:
-            raise Exception('Param/Moive Incompatibility')
+        if 'four_byte' in self.param:
+            print 'Four Byte data, no log file to load.'
+            return None
 
-        log = {}
-        num_of_vars = len(self.movie_vars)
-        for c,k in enumerate(self.movie_vars):
-            log[k] = clims[c::num_of_vars,:]
-    
-        return log
+        else:
+            print "Loading {0}".format(fname)
+            clims = np.loadtxt(fname)
+        
+            if len(clims)%len(self.movie_vars) != 0:
+                raise Exception('Param/Moive Incompatibility')
+
+            log = {}
+            num_of_vars = len(self.movie_vars)
+            for c,k in enumerate(self.movie_vars):
+                log[k] = clims[c::num_of_vars,:]
+        
+            return log
         # usefull use later
         #print "movie.log '%s' has %i time slices"%(fname,self.num_of_times)
 
@@ -173,6 +184,20 @@ class Movie(object):
 #   you pass the standered name of the varible as a string and you get back an array.
 #   in the array each element coresponds to a diffrent time slice
 #   so      movie.movie_log_dict['bz'] = [
+
+    def _get_ntimes(self):
+        if self.log is not None:
+            ntimes = len(self.log[self.movie_vars[0]])
+
+        else:
+            ngrids = self.param['nx']*self.param['pex']*\
+                     self.param['ny']*self.param['pey']*\
+                     self.param['nz']*self.param['pez']
+
+            fname = self.path + self._name_sty.format('bx', self.num)
+            ntimes = os.path.getsize(fname)/4/ngrids
+
+        return ntimes
 
 
     def _get_movie_path(self,path):

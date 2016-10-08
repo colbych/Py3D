@@ -74,7 +74,7 @@ def ims(d,
     if type(k) is str: plt_val = d[k]
     else               : plt_val = k
 
-    if kwargs.has_k('cmap'): cmap=kwargs.pop('cmap')
+    if kwargs.has_key('cmap'): cmap=kwargs.pop('cmap')
     else:                      cmap='PuOr'
 
     im = ax.imshow(plt_val,
