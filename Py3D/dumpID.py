@@ -11,6 +11,7 @@
 import os
 import sys
 import pdb
+import warnings
 import numpy as np
 from dump import Dump
 from _methods import load_param
@@ -58,7 +59,8 @@ class DumpID(object):
 
         if par:
             print 'Reading Fields...'
-            self.fields = self.dump.read_fields()
+            if 'fields' not in self.__dict__:
+                self.fields = self.dump.read_fields()
 
         dump_and_index = self._get_procs_in_box(r0[0],dx0[0],
                                                 r0[1],dx0[1],
@@ -117,8 +119,14 @@ class DumpID(object):
 
     def _rotate_parts(self, p0, r0, dx0):
         b0,e0 = self._interp_fields(r0)
+        #pdb.set_trace()
 
-        exb = np.cross(b0,e0)
+        if np.sum(e0**2) < np.spacing(10): 
+            # Some timese there are just no E fields
+            exb = np.cross(b0, np.array([0.,1.,0.]))
+        else:
+            exb = np.cross(b0,e0)
+
         exb = exb/np.sqrt(np.sum(exb**2))
 
         bbb = b0/np.sqrt(np.sum(b0**2))
@@ -205,11 +213,6 @@ class DumpID(object):
         r0 = np.array([x0,y0,z0])
         dx = np.array([dx,dy,dz])
 
-        procs_needed = [] # The corners of the cube 
-        
-        # find the lower left most proc
-        procs_needed.append(self._r0_to_proc(*(r0 - dx/2.)))
-         
         r0_rng = []
         for c in range(3):
             r0_rng.append(np.arange(r0[c] - dx[c]/2., 
@@ -219,7 +222,6 @@ class DumpID(object):
             if r0_rng[c][-1] < r0[c] + dx[c]/2.:
                 r0_rng[c] = np.hstack((r0_rng[c],r0[c] + dx[c]/2.))
 
-        print r0_rng
 
         p0_rng = []
         for x in r0_rng[0]:
@@ -240,7 +242,7 @@ class DumpID(object):
         for k in di_dict:
             di_dict[k].sort()
             di_dict[k] = list(set(di_dict[k]))
-            #print k, di_dict[k]
+
 
         return di_dict
 
@@ -313,16 +315,18 @@ class DumpID(object):
         dump_IO_version = 'V1'
 
         if self.param.has_key('USE_IO_V2'):
+            warn_msg = 'USE_IO_V2 Not properly coded at this time!'\
+                       'Use at your own risk!'
             dump_IO_version = 'V2'
+            warnings.warn(warn_msg)
        
         if dump_IO_version == 'V1':
-            print 'Using IO V1...'
+            #print 'Using IO V1...'
             N = (px - 1)%nch + 1
             R = (pz - 1)*(pex/nch)*(pey) + (pex/nch)*(py - 1) + (px - 1)/nch
 
         else: # dump_IO_version == 'V2'
-            print 'Using IO V2...'
-
+            #print 'Using IO V2...'
             npes_per_dump = pex*pey*pez/nch
 
             pe = (pz - 1)*pex*pey + (py - 1)*pex + (px - 1)

@@ -1,5 +1,6 @@
 import time
 import operator
+import pdb
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io.idl import readsav 
@@ -16,6 +17,61 @@ def set_local(d,loc,overwrite=False):
             loc[k] = d[k]
 
 #======================================================
+def ims3D(d,
+          k,
+          ax=None,
+          slice=(2,0),
+          extent=None,
+          cbar=None,
+          cont=None,
+          no_draw=None,
+          ctargs={},
+          **kwargs):
+
+    def try_slice(pv,sl):
+        try:
+            pv = pv[sl].T
+        except IndexError:
+            pv = pv.T
+        return pv
+
+    old_ax = plt.gca() # Get Current Axis
+    if ax is None: 
+        ax = old_ax
+    else:
+        plt.sca(ax)    # Set Current Axis
+
+    if type(k) is str: plt_val = d[k]
+    else               : plt_val = k
+
+    if slice[0] == 0:
+        plt_val = try_slice(plt_val,np.s_[:,:,slice[1]])
+        xlab = r'$Y (d_i)$'; ylab = r'$Z (d_i)$'
+        ext = [d['yy'][0], d['yy'][-1], d['zz'][0], d['zz'][-1]]
+
+    elif slice[0] == 1: # We break standered convention because it looks beter
+        plt_val = try_slice(plt_val, np.s_[:,slice[1],:])
+        plt_val = plt_val.T
+        xlab = r'$X (d_i)$'; ylab = r'$Z (d_i)$'
+        ext = [d['xx'][0], d['xx'][-1], d['zz'][0], d['zz'][-1]]
+
+    elif slice[0] == 2:
+        plt_val = try_slice(plt_val, np.s_[:,:,slice[1]])
+        xlab = r'$X (d_i)$'; ylab = r'$Y (d_i)$'
+        ext = [d['xx'][0], d['xx'][-1], d['yy'][0], d['yy'][-1]]
+    else:
+        err_msg = 'slice[0] {} not understood! must be value between 0-2\n'\
+                  'where 0 -> Y,Z plane\n'\
+                  '      1 -> Z,x plane\n'\
+                  'and   2 -> X,Y plane'
+        print err_msg.format(slice[0])
+        raise IOError()
+    
+    return_tuple = _ims(d,plt_val,xlab,ylab,ext,ax,extent,cbar,
+                         cont,no_draw,ctargs,**kwargs)
+    plt.sca(old_ax)
+    return return_tuple 
+
 
 def ims(d,
         k,
@@ -59,11 +115,20 @@ def ims(d,
         explicitly.
 
     """
+
     old_ax = plt.gca() # Get Current Axis
     if ax is None: 
         ax = old_ax
     else:
         plt.sca(ax)    # Set Current Axis
+
+    if type(k) is str: plt_val = d[k]
+    else               : plt_val = k
+    plt_val = plt_val.T
+
+
+    xlab = r'$X (d_i)$'
+    ylab = r'$Y (d_i)$'
 
 # Use the dict values of xx and yy to set extent
     ext = [d['xx'][0],
@@ -71,35 +136,47 @@ def ims(d,
            d['yy'][0],
            d['yy'][-1]]
 
-    if type(k) is str: plt_val = d[k]
-    else               : plt_val = k
+    return_tuple = _ims(d,plt_val,xlab,ylab,ext,ax,extent,cbar,
+                         cont,no_draw,ctargs,**kwargs)
+
+    plt.sca(old_ax)
+
+    return return_tuple 
+
+
+def _ims(d,
+         plt_val,
+         xlab,
+         ylab,
+         ext,
+         ax,
+         extent,
+         cbar,
+         cont,
+         no_draw,
+         ctargs,
+         **kwargs):
+
 
     if kwargs.has_key('cmap'): cmap=kwargs.pop('cmap')
     else:                      cmap='PuOr'
 
     im = ax.imshow(plt_val,
-                           origin='low',
-                           extent=ext,
-                           cmap=cmap,            # I just love this color map
-                           **kwargs)
+                   origin='low',
+                   extent=ext,
+                   cmap=cmap,            # I just love this color map
+                   **kwargs)
 
     if extent is not None:
         ax.set_xlim(extent[:2])
         ax.set_ylim(extent[2:])
 
     ax.autoscale(False)
-
-    ax.set_xlabel(r'$X (d_i)$',size=8)
-    ax.set_ylabel(r'$Y (d_i)$',size=8)
+    ax.set_xlabel(xlab,size=8)
+    ax.set_ylabel(ylab,size=8)
 
     ax.xaxis.set_tick_params(which='both',labelsize=8)
-    #minorLocator = AutoMinorLocator()           # Note the second call is so that the minor x ticks are not
-    #ax.xaxis.set_minor_locator(minorLocator)    # the same as the y ticks
-
     ax.yaxis.set_tick_params(which='both',labelsize=8)
-    #minorLocator = AutoMinorLocator()
-    #ax.yaxis.set_minor_locator(minorLocator)
-
     plt.minorticks_on()
 
     return_tup = im,
@@ -128,7 +205,6 @@ def ims(d,
 
     if not no_draw:
         plt.draw()
-    plt.sca(old_ax)
 
     if len(return_tup) == 1:
         return return_tup[0]
@@ -238,27 +314,49 @@ def gen_distro(species,
                dx=[.5,.5],
                par=False,
                **vdargs):
-    pass
+    raise NotImplementedError()
     
 
 #======================================================
 
-def multi_color():
+def multi_color(slice=None, draw=False):
 
     """ A method for Mike!. It coppies his multi gray
         IDL code.
     """
+    plt_plane = 2
+    plt_offset = 0
+
     M = Movie()
-    d = M.get_fields()
+    t = raw_input('Enter time between {}-{}: '.format(0,M.ntimes-1))
+    t = int(t)
     
     print 'Getting Fgiure...'
     fig = plt.gcf()
     fig.clf()
+    plt.ioff()
 
     print 'Making subplots...'
-    ax = [fig.add_subplots(6,5,c+1) for c in range(6*5)]
+    ax = [fig.add_subplot(6,5,c+1) for c in range(6*5)]
     for a,k in zip(ax,M.movie_vars):
-        ims(d,k,a)
+
+        print 'loading ',k
+        d = M.get_fields(k, time=t, slice=slice)
+
+        print 'plotting ',k
+        ttl = k
+        if M.param['pez']*M.param['nz'] > 1:
+            ims3D(d,k,a, no_draw=not draw, slice=slice)
+            ttl+= ', {}={}'.format('xyz'[slice[0]], slice[1])
+            a.set_title(ttl,size=8)
+
+        else:
+            ims(d,k,a, no_draw=not draw)
+            a.set_title(ttl,size=8)
+    
+    plt.ion()
+    plt.draw()
+    plt.tight_layout()
 
         
 
@@ -280,18 +378,19 @@ def show_energy(fname=None):
 
 #======================================================
 
-def calc_psi(CR):
+def calc_psi(d):
 # Calculating Psi                                                                                   
-    if 'bxav' in CR and 'byav' in CR:
-        bx = CR['bxav']
-        by = CR['byav']
+    if 'bxav' in d and 'byav' in d:
+        bx = d['bxav']
+        by = d['byav']
     else:
-        bx = CR['bx']
-        by = CR['by']
+        bx = d['bx']
+        by = d['by']
 
+    #pdb.set_trace()
     psi = 0.0*bx
-    psi[0,1:] = np.cumsum(by[0,1:])*(CR['yy'][2] - CR['yy'][1])
-    psi[1:,:] = psi[0,:] - np.cumsum(bx[1:,:],axis=0)*(CR['xx'][2] - CR['xx'][1])
+    psi[0,1:] = np.cumsum(bx[0,1:])*(d['yy'][2] - d['yy'][1])
+    psi[1:,:] = psi[0,:] - np.cumsum(by[1:,:], axis=0)*(d['xx'][2] - d['xx'][1])
     return psi
 
 #======================================================
@@ -601,3 +700,6 @@ def rotate_ten(CR,
 
         CR[var+'perp2'+av] = CR[var+'perp1'+av]
 
+def date_file_prefix():
+    import datetime
+    return datetime.date.today().strftime('%Y.%m.%d.')

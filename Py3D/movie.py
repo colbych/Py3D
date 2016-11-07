@@ -27,19 +27,35 @@ class Movie(object):
         self.ntimes     = self._get_ntimes()
 
 
-    def get_fields(self, vars, time=None):
+    def get_fields(self, vars, time=None, slice=None):
         """ Loads the field(s) var at for a given time(s)
 
-            var can be:
+            var (string, [strings]) ::
                 a single string field name
                 a list of string field names
                 or simply 'all'
+
+            time (int, None) :: what time you want to read, if None it will ask
+
+            slice (None, tuple(0-2, int)) :: if you want to load only a slice
+                of a 3D movie file (to save time?) the first int it what plane
+                that you dont want, and the second is the off set
         """
 
         if 'all' in vars:
             vars = tuple(self.movie_vars)
         elif type(vars) is str:
             vars = [vars]
+        
+        while time not in range(self.ntimes):
+            if time is None:
+                msg = "Enter time between 0-{0}: ".format(self.ntimes-1)
+            else:
+                msg = "Time {0} not in time range. Enter time between 0-{1}: "
+                msg = msg.format(time,self.ntimes-1)
+
+            time = int(raw_input(msg))
+
 
         flds = {} 
         for v in vars:
@@ -48,16 +64,16 @@ class Movie(object):
                 err_msg = err_msg.format(v,self.movie_vars)
                 raise KeyError(err_msg)
 
-            flds[v] = self._read_movie(v,time)
+            flds[v] = self._read_movie(v,time,slice)
         
         
-        xyz_vecs = self._get_xy_vectors()
+        xyz_vecs = self._get_xyz_vectors()
         for k in xyz_vecs:
             flds[k] = xyz_vecs[k]
 
         return flds
 
-    def _get_xy_vectors(self):
+    def _get_xyz_vectors(self):
         xyz_vecs = {}
 
         dx = self.param['lx']/(self.param['pex']*self.param['nx'])
@@ -110,7 +126,7 @@ class Movie(object):
 #            fname = self.movie_path+'/movie.'+cosa+'.'+self.movie_num_str
 #            fname = os.path.abspath(fname)
 
-    def _read_movie(self,var, time):
+    def _read_movie(self, var, time, slice):
         
         # Insert Comment about werid movie shape
         movie_shape = (self.ntimes,
@@ -126,28 +142,45 @@ class Movie(object):
         # the byte data is unsigned and the doulbe byte is signed so that is 
         # why one has a uint and the other is just int
         if 'four_byte' in self.param:
-            byte_2_real = lambda m : m
             dat_type = np.dtype('float32')
+            byte_2_real = lambda m : m
+
         else:
             if 'double_byte' in self.param:
                 dat_type = np.dtype('int16')
                 norm = 256**2-1
                 shft = 1.0*256**2/2
+
             else: #single byte precision
                 dat_type = np.dtype('uint8')
                 norm = 256-1
                 shft = 0.0
 
-            t = 0 # This keeps track of where we are
             cmin = self.log[var][:,0][time]
             cmax = self.log[var][:,1][time]
+            
+            byte_2_real = lambda m : (1.*m.T + shft)*\
+                                     (cmax - cmin)/(1.0*norm) + cmin 
 
-            byte_2_real = lambda m : (1.*m.T + shft)*(cmax - cmin)/(1.0*norm) + cmin 
 
         mov = np.memmap(fname, dtype=dat_type, mode='r', shape=movie_shape)
+        mov = mov[time]
+        if slice is None:
+            mov = mov.view(np.ndarray)
+        elif type(slice) is tuple:
+        # Colby: I know this is backwards, its how it get loaded
+            if slice[0] == 0:
+                slc = np.s_[:,:,slice[1]]
+            elif slice[0] == 1:
+                slc = np.s_[:,slice[1],:]
+            elif slice[0] == 2:
+                slc = np.s_[slice[1],:,:]
 
-        mov = mov[time].view(np.ndarray)
+            
+            mov = mov[slc].view(np.ndarray)
+
         mov = byte_2_real(mov)
+        #mov =  (1.*mov.T + shft)*(cmax - cmin)/(1.0*norm) + cmin 
         mov = np.squeeze(mov)
         return mov
 

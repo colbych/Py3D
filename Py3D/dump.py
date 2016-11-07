@@ -38,6 +38,8 @@ class Dump(object):
         """
 
         self._set_dump_path(path)
+        if param_file is not None:
+            param_file = self.path+'/'+param_file
         self.param = load_param(param_file)
         self.set_dump_num(num)
         self._set_part_dtype()
@@ -105,13 +107,46 @@ class Dump(object):
             flds += [self._pop_fields(F)]
             F.close()
 
-        fields = flds[0]
+        
+
+        if len(np.shape(flds[0]['bx'])) < 3:
+            def extra_dim(d):
+                g = {}
+                for k in d:
+                    g[k] = d[k].reshape(np.shape(d[k]) + (1,))
+                return g
+        else:
+            def extra_dim(d):
+                return d
+
+        fields = extra_dim(flds[0])
         for f in flds[1:]:
+            f = extra_dim(f)
             for k in fields:
                 fields[k] = np.concatenate((fields[k],f[k]),axis=2)
 
+        for k,v in self._get_xyz_vectors().iteritems():
+            fields[k] = v
+
+        for k in fields:
+            fields[k] = np.squeeze(fields[k])
+
         return fields
 
+    def _get_xyz_vectors(self):
+        xyz_vecs = {}
+
+        dx = self.param['lx']/(self.param['pex']*self.param['nx'])
+        xyz_vecs['xx'] = np.arange(dx/2.,self.param['lx'],dx)
+
+        dy = self.param['ly']/(self.param['pey']*self.param['ny'])
+        xyz_vecs['yy'] = np.arange(dy/2.,self.param['ly'],dy)
+
+        if self.param['pez']*self.param['nz'] > 1:
+            dz = self.param['lz']/(self.param['pez']*self.param['nz'])
+            xyz_vecs['zz'] = np.arange(dz/2.,self.param['lz'],dz)
+
+        return xyz_vecs
 
     def _set_dump_path(self, path):
         def get_choices(path):
@@ -122,6 +157,7 @@ class Dump(object):
         attempt_tol = 5
         path = os.path.abspath(path)
         choices =  get_choices(path)
+        print path
 
         c = 0
         while not choices and c < attempt_tol:
