@@ -14,12 +14,9 @@ class Movie(object):
                  path='./'):
         """ Initlize a movie object
         """
-        print path
-        print param
         self._name_sty  = '/movie.{0}.{1}'
         self.path       = self._get_movie_path(path)
         if param is not None: param = self.path + '/' + param
-        print param
         self.param      = load_param(param)
         self.num        = self._get_movie_num(num)
         self.movie_vars = self._get_movie_vars()

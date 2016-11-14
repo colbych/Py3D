@@ -335,17 +335,29 @@ def multi_color(slice=None, draw=False):
                 0 -> (y,z), 1 -> (x,z), 2 -< (x,y)
             offset : float
                 What value do you want to use in the 3rd direction?
+
         draw : bool
             if True it will plot and draw every subplot in real time
             Note: if set to True it is VERY slow
     """
-    plt_plane = 2
-    plt_offset = 0
+    M,t,fig,istate = _movie_start_plot()
 
-    M,t,istate = _movie_start_plot()
+    # This is going to sound crazy but there seems to be a BIG time
+    # difference in loading the movie files depending on if the slice
+    # is a list or a tuple (like a factor of 10 faster for tuple)
+    if slice is None: 
+        slice=(2,0)
+    else:
+        xyz = M._get_xyz_vectors()
+        k = 2*('xyz'[slice[0]])
+        s2 = np.argmin(np.abs(xyz[k] - slice[1]))
+        slice = (slice[0], s2)
 
+
+    print 'Slice = ',slice
     print 'Making subplots...'
     ax = [fig.add_subplot(6,5,c+1) for c in range(6*5)]
+    im = []
     for a,k in zip(ax,M.movie_vars):
 
         print 'loading ',k
@@ -354,21 +366,20 @@ def multi_color(slice=None, draw=False):
         print 'plotting ',k
         ttl = k
         if M.param['pez']*M.param['nz'] > 1:
-            if slice is None: slice=(2,0)
-            ims3D(d,k,a, no_draw=not draw, slice=slice)
+            im.append(ims3D(d,k,a, no_draw=not draw, slice=slice))
             ttl+= ', {}={}'.format('xyz'[slice[0]], slice[1])
             a.set_title(ttl,size=8)
 
         else:
-            ims(d,k,a, no_draw=not draw)
+            im.append(ims(d,k,a, no_draw=not draw))
             a.set_title(ttl,size=8)
     
     _movie_end_plot(istate)
-    return None
+    return ax,im
 
 #======================================================
 
-def three_plane(v, r0=[0., 0., 0.]):
+def three_plane(v, r0=[0., 0., 0.], **imsargs):
     """ A method to look at 3 planes that intersect a point
 
         Parameters
@@ -382,9 +393,10 @@ def three_plane(v, r0=[0., 0., 0.]):
                 y position of cut in the (x,z) plane
             z : float
                 z position of cut in the (x,y) plane
+        imsargs : key word argumetns for Py3D.sub.ims3D
     """
     
-    M,t,istate = _movie_start_plot(r0)
+    M,t,fig,istate = _movie_start_plot()
     
     # Note this is a sloopy way of converting r0 -> ind0 this takes O(N) 
     # time where N is the length of a given dimentison. We can easly do 
@@ -392,17 +404,17 @@ def three_plane(v, r0=[0., 0., 0.]):
     xyz = M._get_xyz_vectors()
     ind0 = [np.argmin(np.abs(xyz[k+k] - r)) for r,k in zip(r0,'xyz')]
 
-
     print 'Making subplots...'
     ax = [fig.add_subplot(2,2,c+1) for c in [0,3,2]]
-    
+    im = []
+   
     for c in range(3):
         print 'loading x,y slice of {} @ kp_z={}'.format(v,ind0[2])
 
         slice = ((c+2)%3,ind0[(c+2)%3])
 
         d = M.get_fields(v, time=t, slice=slice)
-        ims3D(d,v,ax[c], no_draw=True, slice=slice)
+        im.append(ims3D(d,v,ax[c], no_draw=True, slice=slice, **imsargs))
         ttl = '{}={}'.format('xyz'[slice[0]], r0[(c+2)%3])
         ax[c].set_title(ttl,size=8)
 
@@ -413,9 +425,21 @@ def three_plane(v, r0=[0., 0., 0.]):
         a.plot(0.*_x + r0[0], _x, 'k--')
         a.plot(_x, 0.*_x + r0[1], 'k--')
     
+    if 'vmin' not in imsargs and 'vmax' not in imsargs:
+        def gcm(_im):
+            if type(_im) is tuple:
+                _im = _im[0]
+            return _im
+
+        cmax = max([gcm(_im).get_clim()[1] for _im in im])
+        cmin = min([gcm(_im).get_clim()[0] for _im in im])
+
+        for _im in im:
+            gcm(_im).set_clim(cmin, cmax)
+
     _movie_end_plot(istate)
 
-    return M
+    return ax,im
         
 
 #======================================================
@@ -428,16 +452,16 @@ def _movie_start_plot():
     print 'Getting Fgiure...'
     fig = plt.gcf()
     fig.clf()
-    istate = plt.is_interactive
+    istate = plt.isinteractive
     plt.ioff()
 
-    return M,t,istate
+    return M,t,fig,istate
 
 def _movie_end_plot(istate):
     if istate:
         plt.ion()
-    plt.draw()
     plt.tight_layout()
+    plt.draw()
 
 #======================================================
 
