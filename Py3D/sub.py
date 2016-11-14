@@ -72,6 +72,7 @@ def ims3D(d,
     plt.sca(old_ax)
     return return_tuple 
 
+#======================================================
 
 def ims(d,
         k,
@@ -143,6 +144,7 @@ def ims(d,
 
     return return_tuple 
 
+#======================================================
 
 def _ims(d,
          plt_val,
@@ -323,18 +325,24 @@ def multi_color(slice=None, draw=False):
 
     """ A method for Mike!. It coppies his multi gray
         IDL code.
+
+        Parameters
+        ----------
+        slice : None || (axis, offset)
+            Only relevent for 3D data. Which slice (plane) to plot.
+            axis : int 0,1,2
+                Which plane do you want to see? 
+                0 -> (y,z), 1 -> (x,z), 2 -< (x,y)
+            offset : float
+                What value do you want to use in the 3rd direction?
+        draw : bool
+            if True it will plot and draw every subplot in real time
+            Note: if set to True it is VERY slow
     """
     plt_plane = 2
     plt_offset = 0
 
-    M = Movie()
-    t = raw_input('Enter time between {}-{}: '.format(0,M.ntimes-1))
-    t = int(t)
-    
-    print 'Getting Fgiure...'
-    fig = plt.gcf()
-    fig.clf()
-    plt.ioff()
+    M,t,istate = _movie_start_plot()
 
     print 'Making subplots...'
     ax = [fig.add_subplot(6,5,c+1) for c in range(6*5)]
@@ -355,16 +363,92 @@ def multi_color(slice=None, draw=False):
             ims(d,k,a, no_draw=not draw)
             a.set_title(ttl,size=8)
     
-    plt.ion()
+    _movie_end_plot(istate)
+    return None
+
+#======================================================
+
+def three_plane(v, r0=[0., 0., 0.]):
+    """ A method to look at 3 planes that intersect a point
+
+        Parameters
+        ----------
+        v : str
+            (v)ariable to plot, there must be a coresponding movie file
+        r0 : (x, y, z)
+            x : float
+                x position of cut in the (y,z) plane
+            y : float
+                y position of cut in the (x,z) plane
+            z : float
+                z position of cut in the (x,y) plane
+    """
+    
+    M,t,istate = _movie_start_plot(r0)
+    
+    # Note this is a sloopy way of converting r0 -> ind0 this takes O(N) 
+    # time where N is the length of a given dimentison. We can easly do 
+    # this in O(1) time
+    xyz = M._get_xyz_vectors()
+    ind0 = [np.argmin(np.abs(xyz[k+k] - r)) for r,k in zip(r0,'xyz')]
+
+
+    print 'Making subplots...'
+    ax = [fig.add_subplot(2,2,c+1) for c in [0,3,2]]
+    
+    for c in range(3):
+        print 'loading x,y slice of {} @ kp_z={}'.format(v,ind0[2])
+
+        slice = ((c+2)%3,ind0[(c+2)%3])
+
+        d = M.get_fields(v, time=t, slice=slice)
+        ims3D(d,v,ax[c], no_draw=True, slice=slice)
+        ttl = '{}={}'.format('xyz'[slice[0]], r0[(c+2)%3])
+        ax[c].set_title(ttl,size=8)
+
+    _x2 = max([xyz[k][-1] for k in xyz])
+    _x1 = min([xyz[k][0]  for k in xyz])
+    _x = np.linspace(_x1,_x2,200)
+    for a,y,x in zip(ax, [0,1,0], [1,2,2]):
+        a.plot(0.*_x + r0[0], _x, 'k--')
+        a.plot(_x, 0.*_x + r0[1], 'k--')
+    
+    _movie_end_plot(istate)
+
+    return M
+        
+
+#======================================================
+
+def _movie_start_plot():
+    M = Movie()
+    t = raw_input('Enter time between {}-{}: '.format(0,M.ntimes-1))
+    t = int(t)
+
+    print 'Getting Fgiure...'
+    fig = plt.gcf()
+    fig.clf()
+    istate = plt.is_interactive
+    plt.ioff()
+
+    return M,t,istate
+
+def _movie_end_plot(istate):
+    if istate:
+        plt.ion()
     plt.draw()
     plt.tight_layout()
-
-        
 
 #======================================================
 
 
 def show_energy(fname=None):
+    """ Grabs the energy values from a p3d.stdout file and returns them
+        as a numpy array.
+
+        fname : None || str
+            Name of the p3d.stdout file to grab, if None it will ask.
+    """
     if fname is None:
         fname = raw_input('Enter p3d.stdout file: ')
 
@@ -375,12 +459,13 @@ def show_energy(fname=None):
             eng.append(lines.split()[1:4])
     f.close()
 
-    return np.array(eng)
+    return np.array(eng).astype(float)
 
 #======================================================
 
 def calc_psi(d):
-# Calculating Psi                                                                                   
+    """ Untested do not use! """
+
     if 'bxav' in d and 'byav' in d:
         bx = d['bxav']
         by = d['byav']
@@ -544,6 +629,7 @@ def roll_run(CR,sx=None):
 #======================================================
 
 def readsave(restore_fname):
+    """ read an idl .sav(.dat) file or a python npy file """
     if restore_fname[restore_fname.rfind('.'):] == '.npy':
         cr = np.load(restore_fname).all()
         for v in ['ni', 'ne', 'niav', 'neav']:
@@ -555,44 +641,16 @@ def readsave(restore_fname):
 
 #======================================================
 
+def date_file_prefix():
+    """ returns a string with the current date """
+    import datetime
+    return datetime.date.today().strftime('%y.%m.%d.')
 
-def calc_pdf(ar,min=99999,max=99999,weight=100,inc=0,ax=0):
-   if len(ar) == 0:
-      print 'No array provided! Exiting!'
-      return
-   if min == 99999:
-      min=ar.min()
-   if max == 99999:
-      max=ar.max()
-   # If PDF of increment, then increment the array
-   if inc > 0:
-      ar = ar - np.roll(ar,inc,axis=ax)
-   # Find the total length of data set
-   arsize=reduce(operator.mul, np.shape(ar),1)
-   # Find the RMS value of data set and normalize to it.
-   rmsval = np.sqrt(np.mean(ar**2))
-   if rmsval != 0:
-      ar = ar/rmsval
-   # Reshape the array to 1D & sort it.
-   arr=np.reshape(ar,arsize)
-   np.ndarray.sort(arr,kind='heapsort')
-   # Empty arrays for output
-   bins=int(arsize/weight); pdf=np.zeros(bins); binvals=np.zeros(bins)
-   # Fill the bins 
-   for i in range(bins):
-      start=i*weight
-      binvals[i] = np.mean(arr[start:start+weight])
-      pdf[i] = weight/(arr[start:start+weight].max()-arr[start:start+weight].min())
-   pdf = pdf/arsize
-   return binvals,pdf
+#======================================================
 
 def rs3d(arr):
     """ Reshape an array as a 3D array (for Tulasi's stupid code)"""
     return arr.reshape(arr.shape + (1,))
-
-def date_file_prefix():
-    import datetime
-    return datetime.date.today().strftime('%y.%m.%d')
 
 #======================================================
 
@@ -701,6 +759,40 @@ def rotate_ten(CR,
 
         CR[var+'perp2'+av] = CR[var+'perp1'+av]
 
-def date_file_prefix():
-    import datetime
-    return datetime.date.today().strftime('%Y.%m.%d.')
+#======================================================
+
+def calc_pdf(ar,min=99999,max=99999,weight=100,inc=0,ax=0):
+    """
+    This is Tulasi's code it allegedly works. I have not extensivly
+    tested it myself use at your own risk.
+
+    """
+    
+    if len(ar) == 0:
+        print 'No array provided! Exiting!'
+        return
+    if min == 99999:
+        min=ar.min()
+    if max == 99999:
+        max=ar.max()
+    # If PDF of increment, then increment the array
+    if inc > 0:
+        ar = ar - np.roll(ar,inc,axis=ax)
+    # Find the total length of data set
+    arsize=reduce(operator.mul, np.shape(ar),1)
+    # Find the RMS value of data set and normalize to it.
+    rmsval = np.sqrt(np.mean(ar**2))
+    if rmsval != 0:
+        ar = ar/rmsval
+    # Reshape the array to 1D & sort it.
+    arr=np.reshape(ar,arsize)
+    np.ndarray.sort(arr,kind='heapsort')
+    # Empty arrays for output
+    bins=int(arsize/weight); pdf=np.zeros(bins); binvals=np.zeros(bins)
+    # Fill the bins 
+    for i in range(bins):
+        start=i*weight
+        binvals[i] = np.mean(arr[start:start+weight])
+        pdf[i] = weight/(arr[start:start+weight].max()-arr[start:start+weight].min())
+    pdf = pdf/arsize
+    return binvals,pdf
