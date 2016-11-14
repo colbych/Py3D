@@ -186,7 +186,7 @@ class Movie(object):
 
 
     def _load_log(self):
-        """ Loads the log file for a given set of moives files
+        """ Loads the log file for a given set of movies files
             It creates a dictionary
         """
 
@@ -219,18 +219,23 @@ class Movie(object):
 #   so      movie.movie_log_dict['bz'] = [
 
     def _get_ntimes(self):
+        ntimes = None
         if self.log is not None:
             ntimes = len(self.log[self.movie_vars[0]])
+            return ntimes
 
         else:
             ngrids = self.param['nx']*self.param['pex']*\
                      self.param['ny']*self.param['pey']*\
                      self.param['nz']*self.param['pez']
+            for v in self.movie_vars:
+                try:
+                    fname = self.path + self._name_sty.format(v, self.num)
+                    ntimes = os.path.getsize(fname)/4/ngrids
+                    return ntimes
+                except OSError:
+                    pass
 
-            fname = self.path + self._name_sty.format('bx', self.num)
-            ntimes = os.path.getsize(fname)/4/ngrids
-
-        return ntimes
 
 
     def _get_movie_path(self,path):
@@ -258,8 +263,8 @@ class Movie(object):
         num = _num_to_ext(num)
 
         if num not in choices:
-            _ =  'Select from the following possible moive numbers:'\
-                 '\n{0}'.format(choices)
+            _ =  'Select from the following possible movie numbers: '\
+                 '\n{0} '.format(choices)
             num = int(raw_input(_))
  
         return _num_to_ext(num)
@@ -269,7 +274,7 @@ class Movie(object):
         #NOTE: The movie_vars are in an order, please do not switch around 
         #      unless you want incidious bugs
 
-        #Check the moive header type
+        #Check the movie header type
         if self.param['movie_header'] == '"movie2dC.h"':
             return ['rho',
                     'jx','jy','jz',
@@ -331,7 +336,7 @@ class Movie(object):
  
         else:
             err_msg = '='*80 + \
-                      '\t This particular moive headder has not been coded!\n'\
+                      '\t This particular movie headder has not been coded!\n'\
                       '\tTalk to Colby to fit it, or fix it yourself.\n'\
                       '\tI dont care, Im a computer not a cop'\
                       '='*80

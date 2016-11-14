@@ -346,6 +346,7 @@ def multi_color(slice=None, draw=False):
         print 'plotting ',k
         ttl = k
         if M.param['pez']*M.param['nz'] > 1:
+            if slice is None: slice=(2,0)
             ims3D(d,k,a, no_draw=not draw, slice=slice)
             ttl+= ', {}={}'.format('xyz'[slice[0]], slice[1])
             a.set_title(ttl,size=8)
