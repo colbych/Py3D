@@ -245,6 +245,7 @@ class Movie(object):
         while not choices and c < attempt_tol:
             print '='*20 + ' No movie files found ' + '='*20
             path = os.path.abspath(raw_input('Please Enter Path: '))
+            choices = glob.glob(path + self._name_sty.format('log', '*'))
             c =+ 1
 
         assert choices, 'No movie log files found!' 
