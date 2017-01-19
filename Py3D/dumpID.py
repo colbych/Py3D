@@ -34,6 +34,18 @@ class DumpID(object):
         self.dump = Dump(num, param_file, path)
         self.param = self.dump.param
 
+    def read_fields(self):
+        """ Wrapper for the Dump mehtod read_fields
+        Args: None
+        Returns:
+            dict: dictionary containing E and B fields read from the
+                dump files
+            
+        NOTE: We include this it is common to call only DumpID, when
+            we still need the field values
+        """
+
+        return self.dump.read_fields()
 
     def get_part_in_box(self,
                         r=[1.,1.],
@@ -60,7 +72,7 @@ class DumpID(object):
         if par:
             print 'Reading Fields...'
             if 'fields' not in self.__dict__:
-                self.fields = self.dump.read_fields()
+                self.fields = self.read_fields()
 
         dump_and_index = self._get_procs_in_box(r0[0],dx0[0],
                                                 r0[1],dx0[1],
@@ -74,8 +86,8 @@ class DumpID(object):
             for sp in parts:
                 parts[sp] += [data[sp][g] for g in dump_and_index[d]]
 
-        if tags:
-            parts = self._combine_parts_and_tags(parts)
+        #if tags:
+        #    parts = self._combine_parts_and_tags(parts)
 
         for sp in parts:
             for c,p in enumerate(parts[sp]):
@@ -97,6 +109,9 @@ class DumpID(object):
             
             There is a small chance that this may be slow!
             So maybe come back and try to fix it? if it needs it
+
+            !!!WARNING!!!: This is now defunct because of changes made in 
+                           the dump.py file. 
         """
         bind_parts = {}
         for sp in parts:
@@ -133,7 +148,7 @@ class DumpID(object):
 
         beb = np.cross(bbb,exb)
         
-        ntype = p0.dtype.descr[3][1] #This is the type of vx
+        ntype = p0.dtype['vx'].type
 
         extra_dt = [('v0', ntype),
                     ('v1', ntype),

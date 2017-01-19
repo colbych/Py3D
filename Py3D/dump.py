@@ -202,6 +202,9 @@ class Dump(object):
                                      ('vy', ntype),
                                      ('vz', ntype)])
 
+    def _get_tagpart_dtype(self):
+        return np.dtype(self._part_dtype.descr + [('tag','int64')])
+
 
     def _pop_fields(self,F):
         """ Reads the fields from a given dump file
@@ -274,10 +277,12 @@ class Dump(object):
         if self.param['pex']*self.param['pey']*\
             self.param['pez']%self.nchannels != 0:
             raise NotImplementedError()
+        else:
+            nprocs = self.param['pex']*self.param['pey']*\
+                     self.param['pez']/self.nchannels
 
-        nprocs = self.param['pex']*self.param['pey']*\
-                 self.param['pez']/self.nchannels
-                 
+        # If no processosors are spesified, the defual is to return everything
+        # on the dump file, i.e. a list from 0 to the number of procs (nprocs)
         if wanted_procs is None:
             wanted_procs = range(nprocs)
 
@@ -292,9 +297,9 @@ class Dump(object):
             for n in range(nprocs):
 
                 if n in wanted_procs:
-                    pes[sp].append( self._pop_parts_off_grid(F) )
+                    pes[sp].append(self._pop_parts_off_grid(F))
                 else:
-                    pes[sp].append( self._skip_parts(F) )
+                    pes[sp].append(self._skip_parts(F))
                 
                 # Debuging code that says whwere we are physicaly
                 #if sp == 'i':
@@ -358,7 +363,7 @@ class Dump(object):
 
             # First we have to read the particle locations and velocties
             # Each particle takes up prk bytes x 6 for (x,y,z,vx,vy,vz)
-            parts_on_buf = pad/(self.param['prk']*6) 
+            parts_on_buf = pad/(self.param['prk']*6)
 
             parts.append( np.fromfile(F, dtype=self._part_dtype, 
                                          count=parts_on_buf))
@@ -378,9 +383,12 @@ class Dump(object):
         parts[-1] = parts[-1][:num_parts_last_buf]
 
         if self._tags: 
+            #pdb.set_trace()
             tags[-1] = tags[-1][:num_parts_last_buf]
-            return np.concatenate(parts), \
-                   np.concatenate(tags)
+            tagparts = np.concatenate(parts).astype(self._get_tagpart_dtype())
+            tagparts['tag'] = np.concatenate(tags)
+            return tagparts
+
         else:
             return np.concatenate(parts)
 
