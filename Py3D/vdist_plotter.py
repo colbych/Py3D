@@ -100,6 +100,7 @@ class VDistPlotter(object):
         H, xx, yy = VDist().vdist2d(v1, v2, v3, dz, v0_frame, **kwargs)
         H = self._smooth(xx, yy, H, smooth)
 
+        #pdb.set_trace() 
         pcm = ax.pcolormesh(xx, yy, H, **pcmargs)
         ax.set_aspect('equal')
 

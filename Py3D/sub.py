@@ -200,8 +200,8 @@ def _ims(d,
             psi = calc_psi(d)
         if 'colors' not in ctargs: ctargs['colors'] = 'k'
         if 'linestyles' not in ctargs: ctargs['linestyles'] = 'solid'
-        
-        cts = ax.contour(d['xx'],d['yy'],psi,**ctargs)
+       
+        cts = ax.contour(d['xx'],d['yy'],psi.T,**ctargs)
 
         return_tup += (cts,)
 
@@ -668,7 +668,7 @@ def readsave(restore_fname):
 def date_file_prefix():
     """ returns a string with the current date """
     import datetime
-    return datetime.date.today().strftime('%y.%m.%d.')
+    return datetime.date.today().strftime('%Y.%m.%d.')
 
 #======================================================
 
@@ -685,7 +685,7 @@ def rotate_ten(CR,
                full_rotate=False):
 
     if var+'par'+av in CR and not overwrite:
-        print 'Warning: %sparav was found in the' \
+        print 'Warning: {} was found in the'.format(var+'par'+av) +\
               'restored data: nothing will be rotated!!!!'
         pass
 
