@@ -61,24 +61,33 @@ class VDistPlotter(object):
         Args:
             d1 (int 0-2): The velocity space direction coresponding to the x
                 axis
+
             d2 (int 0-2): The velocity space direction coresponding to the y
                 axis
                 Note that if par == False:
                     0 -> x, 1 -> y, 2 -> z
                 And if par == True:
                     0 -> b, 1 -> exb, 2 -> bx(exb)
+
             ax (Matplotlib axes obj, optional): the subplot you want this to 
                 be plotted to. If left as None, the code grabs the current axes
+
             sp (str 'i' or 'e'): the species that you want plotted
+
             dz (float, optional): The width of integrated "pizza" in the 3rd 
                 velocity space direction. Default is None (All space)
+
             v0_frame (boo, optional): If true, this shifts the center of the
                 pizza to the mean velocity in the 3rd direction. Default is 
                 set to False
+
             smooth (float, optional) the std for the guassian filter to smooth
                 the histogram
+
             ctargs (dict): Keyword arguments for the contour function
+
             pcmargs (dict): Keyword arguments for the pcolormesh function
+
             **kwargs: Keyword arguments that will ultimtily be passed to the
                 numpy histogram2d function, so look there for more details
 
