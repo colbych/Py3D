@@ -115,6 +115,81 @@ class VDistPlotter(object):
         #pdb.set_trace()
 
         return ax, pcm
+
+#===========================================================#
+
+    def spec1d(self,
+              dir,
+              pitch_angle,
+              delta_pitch,
+              species,
+              mass=None,
+              ax=None,
+              v0_frame=False,
+              v_light=None,
+              smooth=0.,
+              ctargs=None,
+              pcmargs={},
+              **kwargs):
+
+        """ Plots a 2D distro
+        Args:
+            pitch angle (int 0-2): The velocity space direction coresponding to the x
+                axis
+            dpitch_angle (Matplotlib axes obj, optional): the subplot you want this to 
+                be plotted to. If left as None, the code grabs the current axes
+            species (str 'i' or 'e'): the species that you want plotted
+            dz (float, optional): The width of integrated "pizza" in the 3rd 
+                velocity space direction. Default is None (All space)
+            v0_frame (boo, optional): If true, this shifts the center of the
+                pizza to the mean velocity in the 3rd direction. Default is 
+                set to False
+            ctargs (dict): Keyword arguments for the contour function
+            pcmargs (dict): Keyword arguments for the pcolormesh function
+            **kwargs: Keyword arguments that will ultimtily be passed to the
+                numpy histogram2d function, so look there for more details
+
+        Returns:
+            ax: Retuns matplotlib AxesSubplot of coresponding to plotted fig
+        """
+        
+        ax = self._get_ax(ax)
+        self._set_parts(par=True)
+
+        if sp == 'i':
+            mass = 1.
+        elif sp == 'e':
+            if mass is None:
+                mass = float(raw_input('Enter electron mass: '))
+
+
+        H, xx, yy = VDist().spec1dd(self.parts[sp],
+                                    dir=dir,
+                                    pa=pitch_angle, 
+                                    dpa=delta_pitch,
+                                    mass=mass,
+                                    v0_frame=v0_frame,
+                                    v_light=vlight)
+                                    **kwargs)
+
+        #H = self._smooth(xx, yy, H, smooth)
+
+        #pdb.set_trace() 
+        pcm = ax.pcolormesh(xx, yy, H, **pcmargs)
+        ax.set_aspect('equal')
+
+        if ctargs is not None:
+            self._add_contours(ax, xx, yy, H, ctargs)
+
+        #self._set_labels(ax, k1, k2, k3, sp, dz)
+        self._set_lims(ax, xx, yy, pcm)
+        ax.set_xlim(dir+' $(d_i)$')
+
+# For some reason this is just not working right now!
+        self._set_minorticks_on(ax)
+        #pdb.set_trace()
+
+        return ax, pcm
         
 #===========================================================#
 
