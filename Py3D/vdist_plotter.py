@@ -94,6 +94,7 @@ class VDistPlotter(object):
         Returns:
             ax: Retuns matplotlib AxesSubplot of coresponding to plotted fig
         """
+        from matplotlib.colors import LogNorm
         
         ax = self._get_ax(ax)
         self._set_parts(par)
@@ -109,6 +110,11 @@ class VDistPlotter(object):
         H, xx, yy = VDist().vdist2d(v1, v2, v3, dz, v0_frame, **kwargs)
         H = self._smooth(xx, yy, H, smooth)
 
+        pcmargs = dict(pcmargs)
+        
+        if pcmargs.pop('norm',None):
+            pcmargs['norm'] = LogNorm(vmax=pcmargs.pop('vmax',None),
+                                      vmin=pcmargs.pop('vmin',None))
         #pdb.set_trace() 
         pcm = ax.pcolormesh(xx, yy, H, **pcmargs)
         ax.set_aspect('equal')
@@ -157,7 +163,8 @@ class VDistPlotter(object):
             # not have to be true!
             sig = smooth/(xx[1] - xx[0] + yy[1] - yy[0])*2.
 
-            return gf(H, sigma=sig, mode='constant', cval=0.)
+            #return gf(H, sigma=sig, mode='constant', cval=0.)
+            return gf(H, sigma=sig)
 
         else:
             return H
