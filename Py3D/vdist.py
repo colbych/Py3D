@@ -13,6 +13,7 @@ import numpy as np
 import struct
 import glob
 import pdb
+import warnings
 from scipy.io.idl import readsav
 from scipy.ndimage import gaussian_filter
 
@@ -128,7 +129,65 @@ class VDist(object):
     def _get_gamma(self, v1, v2, v3, v_light):
         v2 = v1**2 + v2**2 + v3**2
         c2 = v_light**2
-        return 1./np.sqrt(1. - v2/c2)
+
+
+ def spec1d(pts,
+            dir,
+            pa,
+            dpa,
+            mass,
+            v_light=None,
+            v0_frame=False,
+            **kwargs):
+    """ core program for calculating the energy spectrum along a direction"""
+
+    if v_light is not None:
+        gamma = self._get_gamma(pts['vx'], pts['vy'], pts['vz'], v_light)
+        c2 = v_light**2
+
+        KE = mass*c2*(gamma - 1.)
+    else:
+        KE = .5*mass*(pts['vx']**2 + pts['vy']**2 + pts['vz']**2)
+    
+    v0 = pts['v0']
+    v1 = pts['v1']
+    v2 = pts['v2']
+    if v0_frame:
+        v0 = v0 - np.mean(v0)
+        v1 = v1 - np.mean(v1)
+        v2 = v2 - np.mean(v2)
+
+    # Note: Does pitch angle change in special relativity? 
+    #       This might be pretty wrong. Maybe ask someone?
+    pitch_angle = -1.0*(np.arctan(v0/np.sqrt(v1**2 + \
+        v2**2))/np.pi*180. - 90.)
+
+    ind = np.where(abs(pitch_angle - pa) < dpa/2.)
+
+    H, x_edge, y_edge = np.histogram2d(pts[dir][ind],
+                                       KE[ind],
+                                       normed=True,
+                                       **kwargs)
+
+    eng = (y_edge[:-1] + y_edge[1:])/2.
+
+    if v_light is not None:
+# I stole this from EFlux code, I dont remeber why we do this
+# so you know, use at your own risk
+        warn_msg = 'Relativistic energy code implemented without though:' +
+                   'Use with caution!!!'
+        warnings.warn(msg)
+        Ebar = eng/mass/v_light**2
+        rel_vel = np.sqrt((Ebar**2 + 2.*Ebar)/(Ebar**2 + 2.*Ebar + 1.))
+        rel_vel = rel_vel*v_light
+        H = (H*eng*rel_vel).T
+
+    else:
+        H = (H*eng**2/sqrt(eng)).T
+
+
+    return H, x_edge, y_edge
+
         
 
     def eflux(self, v1, v2, v3, mass, v_light=None, **kwargs):
