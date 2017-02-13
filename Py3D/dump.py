@@ -44,6 +44,7 @@ class Dump(object):
         self.set_dump_num(num)
         self._set_part_dtype()
         self._tags = False
+        self._endian = '<'
         if self.param.has_key('mult_species'):
             self.is_mult_species = True
             raise NotImplementedError()
@@ -203,7 +204,7 @@ class Dump(object):
                                      ('vz', ntype)])
 
     def _get_tagpart_dtype(self):
-        return np.dtype(self._part_dtype.descr + [('tag','int64')])
+        return np.dtype(self._part_dtype.descr + [('tag', self._endian+'i8')])
 
 
     def _pop_fields(self,F):
@@ -373,7 +374,7 @@ class Dump(object):
             # Now we need to take care of the tags (if they are there)
             pad = self._pop_int(F)
             if self._tags:
-                tags.append(np.fromfile(F, dtype='int64', 
+                tags.append(np.fromfile(F, dtype=self._endian+'i8', 
                                         count=parts_on_buf))
             else:
                 F.seek(pad,1)

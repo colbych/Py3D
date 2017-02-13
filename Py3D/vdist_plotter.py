@@ -134,18 +134,18 @@ class VDistPlotter(object):
 #===========================================================#
 
     def spec1d(self,
-              dir,
-              pitch_angle,
-              delta_pitch,
-              species,
-              mass=None,
-              ax=None,
-              v0_frame=False,
-              v_light=None,
-              smooth=0.,
-              ctargs=None,
-              pcmargs={},
-              **kwargs):
+               dir,
+               pitch_angle,
+               delta_pitch,
+               species,
+               mass=None,
+               ax=None,
+               v0_frame=False,
+               v_light=None,
+               smooth=0.,
+               ctargs=None,
+               pcmargs={},
+               **kwargs):
 
         """ Plots a 2D distro
         Args:
@@ -171,34 +171,39 @@ class VDistPlotter(object):
         ax = self._get_ax(ax)
         self._set_parts(par=True)
 
-        if sp == 'i':
+        if dir in [0,1,2]:
+            dir = 'xyz'[dir]
+
+        if species == 'i':
             mass = 1.
-        elif sp == 'e':
+        elif species == 'e':
             if mass is None:
                 mass = float(raw_input('Enter electron mass: '))
 
 
-        H, xx, yy = VDist().spec1dd(self.parts[sp],
-                                    dir=dir,
-                                    pa=pitch_angle, 
-                                    dpa=delta_pitch,
-                                    mass=mass,
-                                    v0_frame=v0_frame,
-                                    v_light=vlight)
-                                    **kwargs)
+        H, xx, yy = VDist().spec1d(self.parts[species],
+                                   dir=dir,
+                                   pa=pitch_angle, 
+                                   dpa=delta_pitch,
+                                   mass=mass,
+                                   v0_frame=v0_frame,
+                                   v_light=v_light,
+                                   **kwargs)
 
         #H = self._smooth(xx, yy, H, smooth)
 
         #pdb.set_trace() 
         pcm = ax.pcolormesh(xx, yy, H, **pcmargs)
-        ax.set_aspect('equal')
+        #ax.set_aspect('equal')
 
         if ctargs is not None:
             self._add_contours(ax, xx, yy, H, ctargs)
 
         #self._set_labels(ax, k1, k2, k3, sp, dz)
         self._set_lims(ax, xx, yy, pcm)
-        ax.set_xlim(dir+' $(d_i)$')
+        ax.set_xlabel(dir+' $(d_i)$')
+        ax.set_ylabel('KE $(m_iv_0^2)$')
+        ax.set_title('$\\theta = [{}, {}]$'.format(pitch_angle-delta_pitch/2., pitch_angle+delta_pitch/2.))
 
 # For some reason this is just not working right now!
         self._set_minorticks_on(ax)
