@@ -44,7 +44,7 @@ class Dump(object):
         self.set_dump_num(num)
         self._set_part_dtype()
         self._tags = False
-        self._endian = '<'
+        self._endian = '<' # I dont think we need this
         if self.param.has_key('mult_species'):
             self.is_mult_species = True
             raise NotImplementedError()
@@ -61,7 +61,7 @@ class Dump(object):
 
         if num not in choices:
             
-            _ =  'Select from the following possible moive numbers:' \
+            _ =  'Select from the following possible dump file numbers:' \
                  '\n{0} '.format(choices)
             num = int(raw_input(_))
  
@@ -98,7 +98,13 @@ class Dump(object):
         return parts
 
 
-    def read_fields(self):
+    def read_fields(self, index=None):
+        if index is None:
+            return self._read_fields_all()
+        else:
+            return self._read_fields_index(index)
+
+    def _read_fields_all(self):
 
         flds = []
 
@@ -108,6 +114,55 @@ class Dump(object):
             flds += [self._pop_fields(F)]
             F.close()
 
+        
+
+        if len(np.shape(flds[0]['bx'])) < 3:
+            def extra_dim(d):
+                g = {}
+                for k in d:
+                    g[k] = d[k].reshape(np.shape(d[k]) + (1,))
+                return g
+        else:
+            def extra_dim(d):
+                return d
+
+        fields = extra_dim(flds[0])
+        for f in flds[1:]:
+            f = extra_dim(f)
+            for k in fields:
+                fields[k] = np.concatenate((fields[k],f[k]),axis=2)
+
+        for k,v in self._get_xyz_vectors().iteritems():
+            fields[k] = v
+
+        for k in fields:
+            fields[k] = np.squeeze(fields[k])
+
+        return fields
+
+
+    def _read_fields_index(self, index):
+        """ A chunk of code that only read part of the field data
+            This is to seepd up the distro code
+        """
+
+        if type(index) is int:
+            index = (index,)
+
+        for ind in index:
+            ind = _num_to_ext(ind)
+            if ind not in self._dump_files_with_fields():
+                msg = "Dumpfile p3d-{}.{} does not contain field data!"
+                raise Exception(msg.format(ind, self.num))
+
+        flds = []
+        for ind in tuple(index): #This might make things run faster
+            ind = _num_to_ext(ind)
+            print 'Loading p3d-{}.{}'.format(ind, self.num)
+            F = self._open_dump_file(ind)
+            self._read_header(F)
+            flds += [self._pop_fields(F)]
+            F.close()
         
 
         if len(np.shape(flds[0]['bx'])) < 3:
@@ -263,7 +318,7 @@ class Dump(object):
 
             files_with_fields.append(_num_to_ext(ch+1))
 
-        return files_with_fields
+        return tuple(files_with_fields)
 
 
     def _pop_particles(self, F, wanted_procs=None):

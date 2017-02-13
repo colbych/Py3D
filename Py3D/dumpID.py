@@ -71,8 +71,16 @@ class DumpID(object):
 
         if par:
             print 'Reading Fields...'
-            if 'fields' not in self.__dict__:
-                self.fields = self.read_fields()
+            if self._is_2D():
+                if 'fields' not in self.__dict__:
+                    self.fields = self.read_fields()
+            else:
+                if 'fields' not in self.__dict__:
+                    self.fields = self._get_fld_index_in_zplane(r0[2],dx0[2])
+
+                elif r0[2] - dx0[2]/2. > self.fields['zz'][0] and \
+                     r0[2] + dx0[2]/2. < self.fields['zz'][-1]:
+                    self.fields = self._get_fld_index_in_zplane(r0[2],dx0[2])
 
         dump_and_index = self._get_procs_in_box(r0[0],dx0[0],
                                                 r0[1],dx0[1],
@@ -212,6 +220,35 @@ class DumpID(object):
         else:
             return False 
 
+    def _get_fld_index_in_zplane(self, z0, dz):
+        """ I think they way fields are stored is like this:
+            if you have points in the z direction, every dumpfile has
+            pez*nz/nchannel fields on it.
+            Example: pez = 16, nz = 32, nchannel = 128
+            so p3d-001.00 has z = [0,1,2,3]*dgrid
+               p3d-002.00 has z = [4,5,6,7]*dgrid etc.
+            So all we really want to do is find what z our point
+            corresponds to in index space
+        """
+        zmin = z0 - dz/2.
+        zmax = z0 + dz/2.
+
+        ind_min = self._z_to_index(zmin)
+        ind_max = self._z_to_index(zmax)
+
+        index = range(ind_min,ind_max+1)
+
+        flds = self.dump.read_fields(index) 
+
+        # We need to alter the zz array to accout for this
+        idz = (self.param['pez']*self.param['nz'])/self.param['nchannels']
+        sub_zz_index = []
+        for ind in index:
+            sub_zz_index+= range((ind - 1)*idz,ind*idz)
+        
+        flds['zz'] = flds['zz'][sub_zz_index] 
+
+        return flds
 
     def _get_procs_in_box(self, x0, dx, y0, dy, z0, dz):
         """
@@ -261,6 +298,31 @@ class DumpID(object):
 
         return di_dict
 
+
+    def _z_to_index(self, z0):
+
+        if (self.param['pez']*self.param['nz'])%self.param['nchannels'] != 0:
+            raise NotImplementedError()
+        lz = self.param['lz']
+        dz = lz/1./self.param['pez']/self.param['nz']
+        idz = (self.param['pez']*self.param['nz'])/self.param['nchannels']
+        
+        err_msg = '{0} value {1} is outside of the simulation boundry [0.,{2}].'+\
+                  'Setting {0} = {3}'
+
+        if self._is_2D():
+            ind = 1
+        else:
+            if z0 < 0.:
+                print err_msg.format('Z',z0,lz,0.)
+                ind = 1
+            elif z0 >= lz:
+                print err_msg.format('Z',z0,lz,lz)
+                ind = self.param['nchannels']
+            else:
+                ind = (int(np.floor(z0/dz)))//idz + 1
+
+        return ind
 
     def _r0_to_proc(self, x0, y0, z0):
         """ Returns the px,py,pz processeor for a given values of x, y, and z
