@@ -25,4 +25,4 @@ PVS+='init_dump_num:0:'
 PVS+='end_dump_num:2:'
 PVS+='end_path:./'
 
-mpirun.lsf python part_dump_id.py $PVS > output.txt
+mpirun.lsf python /glade/u/colbyh/Py3D/DumpPartCompare/part_dump_id.py $PVS > output.txt
