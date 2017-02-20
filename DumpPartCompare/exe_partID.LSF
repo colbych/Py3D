@@ -1,0 +1,28 @@
+#!/bin/bash
+#BSUB -J mpi4py
+#BSUB -P UDEL0002
+#BSUB -W 0:10
+#BSUB -n 8
+#BSUB -R "span[ptile=8]"
+#BSUB -q premium
+#BSUB -e mpi4py.lat_bw.%J.eo
+#BSUB -o mpi4py.lat_bw.%J.eo
+
+#As a reminder run this as bsub < this_file_name
+
+export OMP_NUM_THREADS=1
+ulimit -c unlimited
+ulimit -s unlimited
+ulimit -a
+
+PVS=''
+PVS+='r0:[10.1, 19.2, .5]:'
+PVS+='dx:[.25,8.,1.]:'
+PVS+='sp:e:'
+PVS+='param_file:param_asym023:'
+PVS+='init_path:./:'
+PVS+='init_dump_num:0:'
+PVS+='end_dump_num:2:'
+PVS+='end_path:./'
+
+mpirun.lsf python part_dump_id.py $PVS > output.txt
