@@ -10,14 +10,14 @@ class Movie(object):
 
     def __init__(self,
                  num=None,
-                 param=None,
+                 param_file=None,
                  path='./'):
         """ Initlize a movie object
         """
         self._name_sty  = '/movie.{0}.{1}'
         self.path       = self._get_movie_path(path)
-        if param is not None: param = self.path + '/' + param
-        self.param      = load_param(param)
+        if param_file is not None: param_file = self.path + '/' + param_file
+        self.param      = load_param(param_file)
         self.num        = self._get_movie_num(num)
         self.movie_vars = self._get_movie_vars()
         self.log        = self._load_log()

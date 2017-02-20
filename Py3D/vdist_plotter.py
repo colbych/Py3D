@@ -156,7 +156,7 @@ class VDistPlotter(object):
             species (str 'i' or 'e'): the species that you want plotted
             dz (float, optional): The width of integrated "pizza" in the 3rd 
                 velocity space direction. Default is None (All space)
-            v0_frame (boo, optional): If true, this shifts the center of the
+            v0_frame (bool, optional): If true, this shifts the center of the
                 pizza to the mean velocity in the 3rd direction. Default is 
                 set to False
             ctargs (dict): Keyword arguments for the contour function
@@ -197,7 +197,8 @@ class VDistPlotter(object):
         #ax.set_aspect('equal')
 
         if ctargs is not None:
-            self._add_contours(ax, xx, yy, H, ctargs)
+            raise NotImplementedError()
+            #self._add_contours(ax, xx, yy, H, ctargs)
 
         #self._set_labels(ax, k1, k2, k3, sp, dz)
         self._set_lims(ax, xx, yy, pcm)

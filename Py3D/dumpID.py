@@ -70,16 +70,18 @@ class DumpID(object):
             parts = {species:[]}
 
         if par:
-            print 'Reading Fields...'
             if self._is_2D():
                 if 'fields' not in self.__dict__:
+                    print 'Reading Fields...'
                     self.fields = self.read_fields()
             else:
                 if 'fields' not in self.__dict__:
+                    print 'Reading Fields...'
                     self.fields = self._get_fld_index_in_zplane(r0[2],dx0[2])
 
                 elif r0[2] - dx0[2]/2. > self.fields['zz'][0] and \
                      r0[2] + dx0[2]/2. < self.fields['zz'][-1]:
+                    print 'Reading Fields...'
                     self.fields = self._get_fld_index_in_zplane(r0[2],dx0[2])
 
         dump_and_index = self._get_procs_in_box(r0[0],dx0[0],
@@ -166,7 +168,8 @@ class DumpID(object):
 
         p1 = np.zeros(p0.shape,dtype=new_dt)
 
-        for v in ['x', 'y', 'z', 'vx', 'vy', 'vz']:
+        #for v in ['x', 'y', 'z', 'vx', 'vy', 'vz']:
+        for v in p0.dtype.fields:
             p1[v] = p0[v]
        
         for v,ehat in zip(('v0','v1','v2'),(bbb,exb,beb)):
