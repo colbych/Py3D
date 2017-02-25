@@ -60,7 +60,7 @@ rank = MPI.COMM_WORLD.Get_rank()
 if rank == 0:
     did = DumpID(num=end_dump_num, param_file=param_file, path=end_path)
     parts = did.get_part_in_box(r0,dx,tags=True)
-    data = parts['e']
+    data = parts[sp]
     param = did.param
     final_parts = None
 
