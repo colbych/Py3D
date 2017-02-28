@@ -48,6 +48,8 @@ class Dump(object):
         if self.param.has_key('mult_species'):
             self.is_mult_species = True
             raise NotImplementedError()
+        elif 'hybrid' in self.param:
+            self.species = ['i']
         else: 
             self.species = ['i','e']
     
@@ -73,7 +75,19 @@ class Dump(object):
     def read_particles(self,index,wanted_procs=None,tags=False):
         """ #   Method      : read_dump_parts
         """
-        
+       
+        _sh = ('hybrid' in self.param, 'USE_SIMPLE_IO' in self.param)
+        if _sh[0] or _sh[1]:
+            if _sh[0] and _sh[1]:
+                return self._read_parts_simple_IO_hybrid(index, wanted_procs)
+            else:
+                raise NotImplementedError()
+
+        else:
+            return self._read_parts_full(index, wanted_procs, tags)
+
+
+    def _read_parts_full(self, index, wanted_procs, tags):
         if tags:
             self._tags = True
         else:
@@ -89,6 +103,30 @@ class Dump(object):
             flds = self._pop_fields(F)
 
         parts = self._pop_particles(F,wanted_procs)
+
+        if F.read():
+            print 'ERROR: The entire dump file was not read.\n'\
+                  '       Returning what was read.'
+        F.close()
+
+        return parts
+
+
+    def _read_parts_simple_IO_hybrid(self, index, wanted_procs):
+        """ There are no tags
+            Every dump file as fields (nx x ny x nz)
+        """
+
+        index = _num_to_ext(index)
+
+        F = self._open_dump_file(index)
+
+        self._read_header(F)
+        
+        #if index in self._dump_files_with_fields():
+        flds = self._pop_fields_sIOh(F)
+
+        parts = self._pop_particles_sIOh(F)
 
         if F.read():
             print 'ERROR: The entire dump file was not read.\n'\
@@ -261,6 +299,29 @@ class Dump(object):
     def _get_tagpart_dtype(self):
         return np.dtype(self._part_dtype.descr + [('tag', self._endian+'i8')])
 
+    def _pop_fields_sIOh(self,F):
+
+        fields = ['bx','by','bz','pe']
+
+        fdict = {fld : [] for fld in fields}
+        
+        # This may be somthing that can be set in the param
+        dtype = 'float64'
+        dtype_size = np.dtype(dtype).itemsize
+
+        for fld in fields:
+            pad = self._pop_int(F)
+            fdict[fld].append(np.fromfile(F, dtype=dtype,
+                                          count=pad/dtype_size))
+            self._pop_int(F)
+
+            fdict[fld] = np.concatenate(fdict[fld])
+            fdict[fld] = fdict[fld].reshape(*(self.param['n'+k] for k in 'xyz'),
+                                            order='F')
+
+            fdict[fld] = fdict[fld].squeeze()
+
+        return fdict
 
     def _pop_fields(self,F):
         """ Reads the fields from a given dump file
@@ -366,6 +427,37 @@ class Dump(object):
                 #    print '[%2.3f, %2.3f, %2.3f, %2.3f, %2.3f, %2.3f]'%tuple(lpe)
         return pes
 
+
+    def _pop_particles_sIOh(self, F):
+        """ Read the particles from a given dump file F
+            and return them.
+
+            N : is the list of procs your want to read from the dump file
+
+            returns pes : a dictonary of species, each species has a list
+                          whose elemts are the particles on a given proc
+        """
+        pes = {} 
+        for sp in self.species: 
+            pes[sp] = []
+
+            pad = self._pop_int(F)
+            n_pes = struct.unpack('<i',F.read(4))[0] 
+            self._pop_int(F)
+
+            pad = self._pop_int(F)
+            num_part = self._pop_int(F)
+            self._pop_int(F)
+
+            pad = self._pop_int(F)
+            pes[sp].append( np.fromfile(F, dtype=self._part_dtype, 
+                                         count=num_part))
+            self._pop_int(F)
+
+
+
+        return pes
+
     def _skip_parts(self,F):
 
         pad = self._pop_int(F)
@@ -439,7 +531,6 @@ class Dump(object):
         parts[-1] = parts[-1][:num_parts_last_buf]
 
         if self._tags: 
-            #pdb.set_trace()
             tags[-1] = tags[-1][:num_parts_last_buf]
             tagparts = np.concatenate(parts).astype(self._get_tagpart_dtype())
             tagparts['tag'] = np.concatenate(tags)

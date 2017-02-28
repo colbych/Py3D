@@ -38,6 +38,20 @@ def load_param(param_file=None):
         if param.has_key(val):
             param[key] = param[val]
 
+# Another issue: Tulasi like to write nchannels as pex*pey*pez so I
+#                have to account for that
+
+    if type(param['nchannels']) is str:
+        bad_chars = '()[]{} '
+        nch = "".join(c for c in param['nchannels'] if c not in bad_chars)
+        val = 1
+        id = nch.find('*')
+        while id > -1:
+            val*=param[nch[:id]]
+            nch = nch[id+1:]
+            id = nch.find('*')
+        param['nchannels'] = val
+
     return param
 
 
