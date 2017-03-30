@@ -43,7 +43,7 @@ def load_param(param_file=None):
 
 def _get_param_file():
     fname = raw_input('Please Param File: ')
-    fname = os.path.abspath(os.path.expandvars(fname))
+    fname = os.path.abspath(os.path.expandvars(fname.strip()))
 
     while not os.path.isfile(fname):
         error_text = '\nFile %s not found!\n' \
