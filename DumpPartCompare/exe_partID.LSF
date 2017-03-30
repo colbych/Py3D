@@ -2,8 +2,8 @@
 #BSUB -J mpi4py
 #BSUB -P UDEL0002
 #BSUB -W 0:10
-#BSUB -n 8
-#BSUB -R "span[ptile=8]"
+#BSUB -n 32
+#BSUB -R "span[ptile=16]"
 #BSUB -q premium
 #BSUB -e mpi4py.lat_bw.%J.eo
 #BSUB -o mpi4py.lat_bw.%J.eo
@@ -25,4 +25,4 @@ PVS+='init_dump_num:0:'
 PVS+='end_dump_num:2:'
 PVS+='end_path:./'
 
-mpirun.lsf python /glade/u/colbyh/Py3D/DumpPartCompare/part_dump_id.py $PVS > output.txt
+mpirun.lsf python /glade/u/home/colbyh/Py3D/DumpPartCompare/part_dump_id.py $PVS > output.txt

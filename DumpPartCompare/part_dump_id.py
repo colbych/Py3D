@@ -49,9 +49,9 @@ for k,v in zip(arg[::2], arg[1::2]):
 
 
 save_name = 'init_partID_{}_r0=['+ (len(r0)*'{:.2f}, ')[:-2] + \
-            ']_dx=['+(len(r0)*'{:.2f}, ')[:-2] + ']'
+            ']_dx=['+(len(r0)*'{:.2f}, ')[:-2] + ']_{}'
 
-save_name = save_name.format(*([param_file]+r0+dx))
+save_name = save_name.format(*([param_file]+r0+dx+[sp]))
 
 size = MPI.COMM_WORLD.Get_size()
 rank = MPI.COMM_WORLD.Get_rank()
