@@ -44,7 +44,14 @@ class Movie(object):
         elif type(vars) is str:
             vars = [vars]
         
-        while time not in range(self.ntimes):
+        def check_if_time_in_file(t):
+            try:
+                time_exisits = set(t) <= set(range(self.ntimes))
+            except TypeError:
+                time_exisits = t in range(self.ntimes)
+            return time_exisits
+        
+        while not check_if_time_in_file(time):
             if time is None:
                 msg = "Enter time between 0-{0}: ".format(self.ntimes-1)
             else:
@@ -52,6 +59,7 @@ class Movie(object):
                 msg = msg.format(time,self.ntimes-1)
 
             time = int(raw_input(msg))
+            
 
 
         flds = {} 
