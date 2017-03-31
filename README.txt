@@ -1,3 +1,7 @@
+This is the development branch and I do not guarenty all functanility
+contained within. Good luck though.
+
+
 All of our pythong programs will be making use of SciPy and NumPy
 If you are unfamilar with these, it might be good to go and read 
 about them. Currently I am using this on yellowstone, hopefully 
