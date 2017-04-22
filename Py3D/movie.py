@@ -394,7 +394,7 @@ class UnfinishedMovie(Movie):
         self.num        = '999'
         self.movie_vars = self._get_movie_vars()
         self.log        = self._load_log()
-        self.ntimes     = len(self.log[self.movie_vars[0]])
+        self.ntimes     = self._get_ntimes()
 
 
 def load_movie(vars=None, time=None, movie_num=None):
