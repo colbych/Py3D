@@ -291,7 +291,8 @@ def load_movie(num=None,
                param=None,
                path='./',
                vars='all',
-               time=None):
+               time=None,
+               slice=None):
 
     """ Parameters
         ----------
@@ -307,7 +308,7 @@ def load_movie(num=None,
         time : int
             what time to load the move from. If None it will ask
     """
-    return Movie(num,param,path).get_fields(vars,time)
+    return Movie(num,param,path).get_fields(vars,time,slice)
 
 #======================================================
 
@@ -318,6 +319,138 @@ def gen_distro(species,
                **vdargs):
     raise NotImplementedError()
     
+#======================================================
+
+def check_energy_conservation(mov_num=None,
+                              init_time=None, 
+                              final_time=None,
+                              ims_var=None,
+                              use_UFM=False):
+
+    """ A simpile method that plots how well the total energy is conserved
+        Parameters
+        ----------
+        Currently not implemented
+    """
+    from scipy.ndimage import gaussian_filter as gf
+    import glob
+
+    vs = 'pexx peyy pezz pixx piyy pizz ne ni'.split()
+    if ims_var is None: ims_var = 'pexx'
+    if ims_var not in vs: vs.append(ims_var)
+
+    print 'Loading Energy from p3d.stdout.000...'
+    try:
+        engs = show_energy('p3d.stdout.000').astype(float)
+    except:
+        print 'p3d.stdout.000 file not found!'
+        return None
+
+    #try:
+    if 1:
+        param_file = glob.glob('param*')[0]
+
+        if use_UFM:
+            from Py3D.movie import UnfinishedMovie
+            print 'Loading temperatures from movies...'
+            M = UnfinishedMovie(param_file)
+        else:
+            print 'Loading temperatures from movie.???.000...'
+            M = Movie(0,param_file)
+        slc = (2,0) if M.param['nz']*M.param['pez'] > 1 else None
+
+        if init_time is None: init_time = 0 
+        if final_time is None: final_time = M.ntimes-1
+
+        di = M.get_fields(vs, init_time, slice=slc)
+        df = M.get_fields(vs, final_time, slice=slc)
+
+    #except:
+    #    print 'Movie part gooffed up!'
+    #    return None
+    
+    fig = plt.figure(1)
+    fig.clf()
+    fig.set_size_inches(12.8, 8.2)
+    ax = [fig.add_subplot(331+c) for c in range(9)]
+    
+    tvc = np.arange(engs.shape[0])*M.param['dt']
+
+    ### subplot 1,1
+    a =ax[0]
+    for eng,l in zip(engs.T, 'B KE Tot'.split()):
+        a.plot(tvc,eng,label=l)
+    a.set_xlabel('time'); a.set_ylabel('Energy')
+
+    ### subplot 1,2
+    a = ax[1]
+    for eng,l in zip(engs.T, 'B KE Tot'.split()):
+        a.plot(tvc,100.*(eng - eng[0])/eng[0],label=l)
+    a.set_xlabel('time'); a.set_ylabel('% Energy change')
+
+    a = ax[2]
+    ims(df, ims_var, ax=a, no_draw=1)
+
+    jp = len(di['yy'])/2
+    sig = 3.
+
+    ### subplot 2,1
+    a = ax[3]
+    for k in 'xyz':
+        lab = 'Te'+2*k+', t='+str(tvc[0])
+        a.plot(di['xx'], (di['pe'+2*k]/di['ne'])[:,0], label=lab)
+        lab = 'Te'+2*k+', t='+str(tvc[-1])
+        a.plot(df['xx'], (df['pe'+2*k]/df['ne'])[:,0], label=lab)
+    a.set_xlabel('X di'); a.set_ylabel('Te')
+    a.legend(loc='best',ncol=3,fontsize=6)
+
+    ### subplot 2,2
+    a = ax[4]
+    for k in 'xyz':
+        lab = 'Te'+2*k+', t='+str(tvc[0])
+        a.plot(di['xx'], (di['pe'+2*k]/di['ne'])[:,jp], label=lab)
+        lab = 'Te'+2*k+', t='+str(tvc[-1])
+        a.plot(df['xx'], (df['pe'+2*k]/df['ne'])[:,jp], label=lab)
+    a.set_xlabel('X di'); a.set_ylabel('Te')
+
+    ### subplot 2,3
+    a = ax[5]
+    for k in 'xyz':
+        lab = 'Te'+2*k+', t='+str(tvc[0])
+        a.plot(di['xx'], gf((di['pe'+2*k]/di['ne'])[:,0], sigma=sig), label=lab)
+        lab = 'Te'+2*k+', t='+str(tvc[-1])
+        a.plot(df['xx'], gf((df['pe'+2*k]/df['ne'])[:,0], sigma=sig), label=lab)
+    a.set_xlabel('X di'); a.set_ylabel('Te')
+
+    ### subplot 3,1
+    a = ax[6]
+    for k in 'xyz':
+        lab = 'Ti'+2*k+', t='+str(tvc[0])
+        a.plot(di['xx'], (di['pi'+2*k]/di['ni'])[:,0], label=lab)
+        lab = 'Ti'+2*k+', t='+str(tvc[-1])
+        a.plot(df['xx'], (df['pi'+2*k]/df['ni'])[:,0], label=lab)
+    a.set_xlabel('X di'); a.set_ylabel('Ti')
+
+    ### subplot 3,2
+    a = ax[7]
+    for k in 'xyz':
+        lab = 'Ti'+2*k+', t='+str(tvc[0])
+        a.plot(di['xx'], (di['pi'+2*k]/di['ni'])[:,jp], label=lab)
+        lab = 'Ti'+2*k+', t='+str(tvc[-1])
+        a.plot(df['xx'], (df['pi'+2*k]/df['ni'])[:,jp], label=lab)
+    a.set_xlabel('X di'); a.set_ylabel('Ti')
+
+    ### subplot 3,3
+    a = ax[8]
+    for k in 'xyz':
+        lab = 'Ti'+2*k+', t='+str(tvc[0])
+        a.plot(di['xx'], gf((di['pi'+2*k]/di['ni'])[:,0], sigma=sig), label=lab)
+        lab = 'Ti'+2*k+', t='+str(tvc[-1])
+        a.plot(df['xx'], gf((df['pi'+2*k]/df['ni'])[:,0], sigma=sig), label=lab)
+    a.set_xlabel('X di'); a.set_ylabel('Ti')
+
+    plt.tight_layout()
+
 
 #======================================================
 

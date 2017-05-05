@@ -278,12 +278,14 @@ class DumpID(object):
                 r0_rng[c] = np.hstack((r0_rng[c],r0[c] + dx[c]/2.))
 
 
+        #print  'r0_rng = ',r0_rng
         p0_rng = []
         for x in r0_rng[0]:
             for y in r0_rng[1]:
                 for z in r0_rng[2]:
                     p0_rng.append(self._r0_to_proc(x,y,z))
 
+        print  p0_rng
         p0_rng = set(p0_rng) #This removes duplicates
 
         di_dict = {}
@@ -341,7 +343,7 @@ class DumpID(object):
         if x0 < 0.:
             print err_msg.format('X',x0,lx,0.)
             px = 1
-        elif x0 >= lx:
+        elif x0 > lx:
             print err_msg.format('X',x0,lx,lx)
             px = self.param['pex']
         else:
@@ -350,7 +352,7 @@ class DumpID(object):
         if y0 < 0.:
             print err_msg.format('Y',y0,ly,0.)
             py = 1
-        elif y0 >= ly:
+        elif y0 > ly:
             print err_msg.format('Y',y0,ly,ly)
             py = self.param['pey']
         else:
@@ -362,7 +364,7 @@ class DumpID(object):
             if z0 < 0.:
                 print err_msg.format('Z',z0,lz,0.)
                 pz = 1
-            elif z0 >= lz:
+            elif z0 > lz:
                 print err_msg.format('Z',z0,lz,lz)
                 pz = self.param['pez']
             else:
