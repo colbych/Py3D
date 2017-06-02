@@ -1,2 +1,2 @@
-from PartTest.testparticle import TPRun
+from PartTrace.testparticle import TPRun
 
