@@ -1,0 +1,7 @@
+Py3D.Py3D.dump module
+=====================
+
+.. automodule:: Py3D.Py3D.dump
+    :members:
+    :undoc-members:
+    :show-inheritance:
