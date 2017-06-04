@@ -1,13 +1,17 @@
 Py3D package
 ============
 
-Subpackages
------------
+Submodules
+----------
 
 .. toctree::
 
-    Py3D.PartTrace
-    Py3D.Py3D
+   Py3D.dump
+   Py3D.dumpID
+   Py3D.movie
+   Py3D.sub
+   Py3D.vdist
+   Py3D.vdist_plotter
 
 Module contents
 ---------------
