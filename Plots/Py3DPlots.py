@@ -247,21 +247,21 @@ if ((X == 'Y') or (X == 'y')):
         sp53.set_title("Viz Comp")
         sp53.set_aspect(1)
 
-        Tixx = d['Pixx']/d['ni']
+        Tixx = d['pixx']/d['ni']
         sp54 = Page5.add_subplot(324)
         plt.pcolormesh(Tixx)
         plt.xticks([2000,8000])
         sp54.set_title("Tixx Comp")
         sp54.set_aspect(1)
 
-        Tiyy = d['Piyy']/d['ni']
+        Tiyy = d['piyy']/d['ni']
         sp55 = Page5.add_subplot(325)
         plt.pcolormesh(Tiyy)
         plt.xticks([2000,8000])
         sp55.set_title("Tiyy Comp")
         sp55.set_aspect(1)
 
-        Tizz = d['Pizz']/d['ni']
+        Tizz = d['pizz']/d['ni']
         sp56 = Page5.add_subplot(326)
         plt.pcolormesh(Tizz)
         plt.xticks([2000,8000])
@@ -282,42 +282,42 @@ if ((X == 'Y') or (X == 'y')):
         Page6.subplots_adjust(hspace = .5)
         Page6.set_size_inches(8.5,11)
 
-        Texx = d['Pexx']/d['ne']
+        Texx = d['pexx']/d['ne']
         sp61 = Page6.add_subplot(321)
         plt.pcolormesh(Texx)
         plt.xticks([2000,8000])
         sp61.set_title("Texx Comp")
         sp61.set_aspect(1)
 
-        Teyy = d['Peyy']/d['ne']
+        Teyy = d['peyy']/d['ne']
         sp62 = Page6.add_subplot(322)
         plt.pcolormesh(Teyy)
         plt.xticks([2000,8000])
         sp62.set_title("Teyy Comp")
         sp62.set_aspect(1)
 
-        Tezz = d['Pezz']/d['ne']
+        Tezz = d['pezz']/d['ne']
         sp63 = Page6.add_subplot(323)
         plt.pcolormesh(Tezz)
         plt.xticks([2000,8000])
         sp63.set_title("Tezz Comp")
         sp63.set_aspect(1)
 
-        Texy = d['Pexy']/d['ne']
+        Texy = d['pexy']/d['ne']
         sp64 = Page6.add_subplot(324)
         plt.pcolormesh(Texy)
         plt.xticks([2000,8000])
         sp64.set_title("Texy Comp")
         sp64.set_aspect(1)
 
-        Texz = d['Pexz']/d['ne']
+        Texz = d['pexz']/d['ne']
         sp65 = Page6.add_subplot(325)
         plt.pcolormesh(Texz)
         plt.xticks([2000,8000])
         sp65.set_title("Texz Comp")
         sp65.set_aspect(1)
 
-        Teyz = d['Peyz']/d['ne']
+        Teyz = d['peyz']/d['ne']
         sp66 = Page6.add_subplot(326)
         plt.pcolormesh(Teyz)
         plt.xticks([2000,8000])
