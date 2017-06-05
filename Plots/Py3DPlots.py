@@ -3,9 +3,7 @@ import matplotlib.pyplot as plt
 from Py3D.sub import load_movie
 
 
-
-X = raw_input('Load Movie? \n ') 
-if ((X == 'Y') or (X == 'y')):
+def P_1_6_Plots():
 	d = load_movie()
 
 #-----------------------------------------------
@@ -332,8 +330,15 @@ if ((X == 'Y') or (X == 'y')):
 
 #--------------------------------------------
 
-
-	
-else:
-	print("Load Data Cancelled")
+i = 0
+while(i == 0):
+    X = raw_input('Load Movie? Y or N \n ')
+    if ((X == 'Y') or (X == 'y')):
+        i = 1
+        P_1_6_Plots()
+    elif((X == 'N') or (X == 'n')):
+        i = 1
+        print("Load Data Cancelled")
+    else:
+        print("invalid input \n")
 
