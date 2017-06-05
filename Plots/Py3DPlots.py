@@ -330,15 +330,21 @@ def P_1_6_Plots():
 
 #--------------------------------------------
 
+
 i = 0
 while(i == 0):
-    X = raw_input('Load Movie? Y or N \n ')
+    while True:
+        try:
+            X = str(raw_input('Load Movie? Y or N \n '))
+            break
+        except ValueError:
+            print("invalid input try again...\n")
     if ((X == 'Y') or (X == 'y')):
-        i = 1
+        i = 1        
         P_1_6_Plots()
     elif((X == 'N') or (X == 'n')):
         i = 1
         print("Load Data Cancelled")
     else:
-        print("invalid input \n")
+        print("invalid input try again...\n")
 
