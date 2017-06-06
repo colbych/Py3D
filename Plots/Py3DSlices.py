@@ -448,7 +448,7 @@ while(i == 0):
                             print("invalid input try again... \n")
                     if (0 <= R <= 8191):
                         q = 1
-                        sliceX(R)
+                        sliceY(R)
                     else:
                         print("invalid input try again...\n")
             else:
