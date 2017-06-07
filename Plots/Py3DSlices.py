@@ -5,6 +5,8 @@ from Py3D.sub import load_movie
 
 def sliceX(index):
     d = load_movie()
+    # this is a slice of constant X so plot against Y
+    Y = d['yy']
     
     Bx_Xslice = d['bx'][:,index]
     By_Xslice = d['by'][:,index]
@@ -40,6 +42,11 @@ def sliceX(index):
     EBZ_Xslice = EcrBK[:,index]
     Meb_Xslice = MEcrB[:,index]
     
+    Pb_Xslice = (Mb_Xslice**2)/2
+    Piyy_Xslice = d['piyy'][:,index]
+    Peyy_Xslice = d['peyy'][:,index]
+    Ptot_Xslice = Pb_Xslice + Piyy_Xslice + d['pezz'][:,index]
+    
     Tixx_Xslice = (d['pixx'][:,index])/(d['ni'][:,index])
     Tiyy_Xslice = (d['piyy'][:,index])/(d['ni'][:,index])
     Tizz_Xslice = (d['pizz'][:,index])/(d['ni'][:,index])
@@ -50,153 +57,102 @@ def sliceX(index):
     
     
     Page7 = plt.figure(7)
-    Page7.subplots_adjust(hspace = .3)
-    Page7.subplots_adjust(wspace = .2)   
+    Page7.subplots_adjust(hspace = 1.5)
+    Page7.subplots_adjust(wspace =  1)
+    Page7.suptitle('X = ' + str(index), fontsize=20)
         
-    sp71 = Page7.add_subplot(581)
-    plt.plot(Bx_Xslice)
-    plt.xticks([2000,8000])
-    sp71.set_title("Bx X Slice")
-    
-    sp72 = Page7.add_subplot(582)
-    plt.plot(By_Xslice)
-    plt.xticks([2000,8000])
-    sp72.set_title("By X Slice")
-    
-    sp73 = Page7.add_subplot(583)
-    plt.plot(Bz_Xslice)
-    plt.xticks([2000,8000])
-    sp73.set_title("Bz X Slice")
-    
-    sp74 = Page7.add_subplot(584)
-    plt.plot(Mb_Xslice)
-    plt.xticks([2000,8000])
-    sp74.set_title("|B| X Slice")
+    sp71 = Page7.add_subplot(521)
+    sp71.plot(Y,Bx_Xslice)
+    sp71.plot(Y,By_Xslice)
+    sp71.plot(Y,Bz_Xslice)
+    sp71.plot(Y,Mb_Xslice)
+    sp71.legend(['$B_x$', '$B_y$', '$B_z$', '$\mid B\mid$'], ncol = 4, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp71.locator_params(nbins = 5, axis = 'y')
+    sp71.locator_params(nbins = 6, axis = 'x')
+    sp71.set_xlim([0,102.5])
 
-    sp75 = Page7.add_subplot(585)
-    plt.plot(Ex_Xslice)
-    plt.xticks([2000,8000])
-    sp75.set_title("Ex X Slice")
+    sp72 = Page7.add_subplot(522)
+    sp72.plot(Y,Ex_Xslice)
+    sp72.plot(Y,Ey_Xslice)
+    sp72.plot(Y,Ez_Xslice)
+    sp72.plot(Y,Me_Xslice)
+    sp72.legend(['$E_x$', '$E_y$', '$E_z$', '$\mid E\mid$'], ncol = 4, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp72.locator_params(nbins = 5, axis = 'y')
+    sp72.locator_params(nbins = 6, axis = 'x')
+    sp72.set_xlim([0,102.5])
     
-    sp76 = Page7.add_subplot(586)
-    plt.plot(Ey_Xslice)
-    plt.xticks([2000,8000])
-    sp76.set_title("Ey X Slice")
+    sp73 = Page7.add_subplot(523)
+    sp73.plot(Y,Ni_Xslice)
+    sp73.plot(Y,Ne_Xslice)
+    sp73.legend(['$N_i$', '$N_e$'], ncol = 2, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp73.locator_params(nbins = 5, axis = 'y')
+    sp73.locator_params(nbins = 6, axis = 'x')
+    sp73.set_xlim([0,102.5])
     
-    sp77 = Page7.add_subplot(587)
-    plt.plot(Ez_Xslice)
-    plt.xticks([2000,8000])
-    sp77.set_title("Ez X Slice")
+    sp74 = Page7.add_subplot(524)
+    sp74.plot(Y,Jx_Xslice)
+    sp74.plot(Y,Jy_Xslice)
+    sp74.plot(Y,Jz_Xslice)
+    sp74.legend(['$J_x$', '$J_y$', '$J_z$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp74.locator_params(nbins = 5, axis = 'y')
+    sp74.locator_params(nbins = 6, axis = 'x')
+    sp74.set_xlim([0,102.5])
     
-    sp78 = Page7.add_subplot(588)
-    plt.plot(Me_Xslice)
-    plt.xticks([2000,8000])
-    sp78.set_title("|E| X Slice")
+    sp75 = Page7.add_subplot(525)
+    sp75.plot(Y,Vix_Xslice)
+    sp75.plot(Y,Viy_Xslice)
+    sp75.plot(Y,Viz_Xslice)
+    sp75.legend(['$V_{ix}$', '$V_{iy}$', '$V_{iz}$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp75.locator_params(nbins = 5, axis = 'y')
+    sp75.locator_params(nbins = 6, axis = 'x')
+    sp75.set_xlim([0,102.5])
     
-    sp79 = Page7.add_subplot(589)
-    plt.plot(Ni_Xslice)
-    plt.xticks([2000,8000])
-    sp79.set_title("Ni X Slice")
-
-    sp710 = Page7.add_subplot(5,8,10)
-    plt.plot(Ne_Xslice)
-    plt.xticks([2000,8000])
-    sp710.set_title("Ne X Slice")
+    sp76 = Page7.add_subplot(526)
+    sp76.plot(Y,Vex_Xslice)
+    sp76.plot(Y,Vey_Xslice)
+    sp76.plot(Y,Vez_Xslice)
+    sp76.legend(['$V_{ex}$', '$V_{ey}$', '$V_{ez}$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp76.locator_params(nbins = 5, axis = 'y')
+    sp76.locator_params(nbins = 6, axis = 'x')
+    sp76.set_xlim([0,102.5])
     
-    sp711 = Page7.add_subplot(5,8,11)
-    plt.plot(Jx_Xslice)
-    plt.xticks([2000,8000])
-    sp711.set_title("Jx X Slice")
+    sp77 = Page7.add_subplot(527)
+    sp77.plot(Y,EBX_Xslice)
+    sp77.plot(Y,EBY_Xslice)
+    sp77.plot(Y,EBZ_Xslice)
+    sp77.plot(Y,Meb_Xslice)
+    sp77.legend([r'$(E\times B)_x$', r'$(E\times B)_y$', r'$(E\times B)_z$', r'$\mid E\times B\mid$'], ncol = 4, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp77.locator_params(nbins = 5, axis = 'y')
+    sp77.locator_params(nbins = 6, axis = 'x')
+    sp77.set_xlim([0,102.5])
     
-    sp712 = Page7.add_subplot(5,8,12)
-    plt.plot(Jy_Xslice)
-    plt.xticks([2000,8000])
-    sp712.set_title("Jy X Slice")
+    sp78 = Page7.add_subplot(528)
+    sp78.plot(Y,Pb_Xslice)
+    sp78.plot(Y,Piyy_Xslice)
+    sp78.plot(Y,Peyy_Xslice)
+    sp78.plot(Y,Ptot_Xslice)
+    sp78.legend(['$P_b$', '$P_{iyy}$', '$P_{eyy}$', '$P_{tot}$'], ncol = 4, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp78.locator_params(nbins = 5, axis = 'y')
+    sp78.locator_params(nbins = 6, axis = 'x')
+    sp78.set_xlim([0,102.5])
     
-    sp713 = Page7.add_subplot(5,8,13)
-    plt.plot(Jz_Xslice)
-    plt.xticks([2000,8000])
-    sp713.set_title("Jz X Slice")
+    sp79 = Page7.add_subplot(529)
+    sp79.plot(Y,Tixx_Xslice)
+    sp79.plot(Y,Tiyy_Xslice)
+    sp79.plot(Y,Tizz_Xslice)
+    sp79.legend(['$T_{ixx}$', '$T_{iyy}$', '$T_{izz}$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp79.locator_params(nbins = 5, axis = 'y')
+    sp79.locator_params(nbins = 6, axis = 'x')
+    sp79.set_xlim([0,102.5])
     
-    sp717 = Page7.add_subplot(5,8,17)
-    plt.plot(Vix_Xslice)
-    plt.xticks([2000,8000])
-    sp717.set_title("Vix X Slice")
-    
-    sp718 = Page7.add_subplot(5,8,18)
-    plt.plot(Viy_Xslice)
-    plt.xticks([2000,8000])
-    sp718.set_title("Viy X Slice")
-
-    sp719 = Page7.add_subplot(5,8,19)
-    plt.plot(Viz_Xslice)
-    plt.xticks([2000,8000])
-    sp719.set_title("Viz X Slice")
-    
-    sp720 = Page7.add_subplot(5,8,20)
-    plt.plot(Vex_Xslice)
-    plt.xticks([2000,8000])
-    sp720.set_title("Vex X Slice")
-    
-    sp721 = Page7.add_subplot(5,8,21)
-    plt.plot(Vey_Xslice)
-    plt.xticks([2000,8000])
-    sp721.set_title("Vey X Slice")
-    
-    sp722 = Page7.add_subplot(5,8,22)
-    plt.plot(Vez_Xslice)
-    plt.xticks([2000,8000])
-    sp722.set_title("Vez X Slice")
-    
-    sp725 = Page7.add_subplot(5,8,25)
-    plt.plot(EBX_Xslice)
-    plt.xticks([2000,8000])
-    sp725.set_title("EcrBx X Slice")
-    
-    sp726 = Page7.add_subplot(5,8,26)
-    plt.plot(EBY_Xslice)
-    plt.xticks([2000,8000])
-    sp726.set_title("EcrBy X Slice")
-    
-    sp727 = Page7.add_subplot(5,8,27)
-    plt.plot(EBZ_Xslice)
-    plt.xticks([2000,8000])
-    sp727.set_title("EcrBz X Slice")
-    
-    sp728 = Page7.add_subplot(5,8,28)
-    plt.plot(Meb_Xslice)
-    plt.xticks([2000,8000])
-    sp728.set_title("|EcrB| X Slice")
-    
-    sp733 = Page7.add_subplot(5,8,33)
-    plt.plot(Tixx_Xslice)
-    plt.xticks([2000,8000])
-    sp733.set_title("Tixx X Slice")
-    
-    sp734 = Page7.add_subplot(5,8,34)
-    plt.plot(Tiyy_Xslice)
-    plt.xticks([2000,8000])
-    sp734.set_title("Tiyy X Slice")
-    
-    sp735 = Page7.add_subplot(5,8,35)
-    plt.plot(Tizz_Xslice)
-    plt.xticks([2000,8000])
-    sp735.set_title("Tizz X Slice")
-    
-    sp736 = Page7.add_subplot(5,8,36)
-    plt.plot(Texx_Xslice)
-    plt.xticks([2000,8000])
-    sp736.set_title("Texx X Slice")
-    
-    sp737 = Page7.add_subplot(5,8,37)
-    plt.plot(Teyy_Xslice)
-    plt.xticks([2000,8000])
-    sp737.set_title("Teyy X Slice")
-    
-    sp738 = Page7.add_subplot(5,8,38)
-    plt.plot(Tezz_Xslice)
-    plt.xticks([2000,8000])
-    sp738.set_title("Tezz X Slice")
+    sp710 = Page7.add_subplot(5,2,10)
+    sp710.plot(Y,Texx_Xslice)
+    sp710.plot(Y,Teyy_Xslice)
+    sp710.plot(Y,Tezz_Xslice)
+    sp710.legend(['$T_{exx}$', '$T_{eyy}$', '$T_{ezz}$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp710.locator_params(nbins = 5, axis = 'y')
+    sp710.locator_params(nbins = 6, axis = 'x')
+    sp710.set_xlim([0,102.5])
     
     
     Page7.show()
@@ -204,6 +160,7 @@ def sliceX(index):
     
 def sliceY(index):
     d = load_movie()
+    X = d['xx']
     
     Bx_Yslice = d['bx'][index,:]
     By_Yslice = d['by'][index,:]
@@ -239,6 +196,11 @@ def sliceY(index):
     EBZ_Yslice = EcrBK[index,:]
     Meb_Yslice = MEcrB[index,:]
     
+    Pb_Yslice = (Mb_Yslice**2)/2
+    Piyy_Yslice = d['piyy'][index,:]
+    Peyy_Yslice = d['peyy'][index,:]
+    Ptot_Yslice = Pb_Yslice + Piyy_Yslice + d['pezz'][index,:]    
+    
     Tixx_Yslice = (d['pixx'][index,:])/(d['ni'][index,:])
     Tiyy_Yslice = (d['piyy'][index,:])/(d['ni'][index,:])
     Tizz_Yslice = (d['pizz'][index,:])/(d['ni'][index,:])
@@ -249,159 +211,106 @@ def sliceY(index):
     
     
     Page7 = plt.figure(7)
-    Page7.subplots_adjust(hspace = .3)
-    Page7.subplots_adjust(wspace = .2) 
+    Page7.subplots_adjust(hspace = 1.5)
+    Page7.subplots_adjust(wspace = 1)
+    Page7.suptitle('Y = ' + str(index), fontsize=20)
         
-        
-    sp71 = Page7.add_subplot(581)
-    plt.plot(Bx_Yslice)
-    plt.xticks([2000,8000])
-    sp71.set_title("Bx Y Slice")
-    
-    sp72 = Page7.add_subplot(582)
-    plt.plot(By_Yslice)
-    plt.xticks([2000,8000])
-    sp72.set_title("By Y Slice")
-    
-    sp73 = Page7.add_subplot(583)
-    plt.plot(Bz_Yslice)
-    plt.xticks([2000,8000])
-    sp73.set_title("Bz Y Slice")
-    
-    sp74 = Page7.add_subplot(584)
-    plt.plot(Mb_Yslice)
-    plt.xticks([2000,8000])
-    sp74.set_title("|B| Y Slice")
+    sp71 = Page7.add_subplot(521)
+    sp71.plot(X,Bx_Yslice)
+    sp71.plot(X,By_Yslice)
+    sp71.plot(X,Bz_Yslice)
+    sp71.plot(X,Mb_Yslice)
+    sp71.legend(['$B_x$', '$B_y$', '$B_z$', '$\mid B\mid$'], ncol = 4, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp71.locator_params(nbins = 5, axis = 'y')
+    sp71.locator_params(nbins = 6, axis = 'x')
+    sp71.set_xlim([0,102.5])
 
-    sp75 = Page7.add_subplot(585)
-    plt.plot(Ex_Yslice)
-    plt.xticks([2000,8000])
-    sp75.set_title("Ex Y Slice")
+    sp72 = Page7.add_subplot(522)
+    sp72.plot(X,Ex_Yslice)
+    sp72.plot(X,Ey_Yslice)
+    sp72.plot(X,Ez_Yslice)
+    sp72.plot(X,Me_Yslice)
+    sp72.legend(['$E_x$', '$E_y$', '$E_z$', '$\mid E\mid$'], ncol = 4, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp72.locator_params(nbins = 5, axis = 'y')
+    sp72.locator_params(nbins = 6, axis = 'x')
+    sp72.set_xlim([0,102.5])
     
-    sp76 = Page7.add_subplot(586)
-    plt.plot(Ey_Yslice)
-    plt.xticks([2000,8000])
-    sp76.set_title("Ey Y Slice")
+    sp73 = Page7.add_subplot(523)
+    sp73.plot(X,Ni_Yslice)
+    sp73.plot(X,Ne_Yslice)
+    sp73.legend(['$N_i$', '$N_e$'], ncol = 2, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp73.locator_params(nbins = 5, axis = 'y')
+    sp73.locator_params(nbins = 6, axis = 'x')
+    sp73.set_xlim([0,102.5])
     
-    sp77 = Page7.add_subplot(587)
-    plt.plot(Ez_Yslice)
-    plt.xticks([2000,8000])
-    sp77.set_title("Ez Y Slice")
+    sp74 = Page7.add_subplot(524)
+    sp74.plot(X,Jx_Yslice)
+    sp74.plot(X,Jy_Yslice)
+    sp74.plot(X,Jz_Yslice)
+    sp74.legend(['$J_x$', '$J_y$', '$J_z$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp74.locator_params(nbins = 5, axis = 'y')
+    sp74.locator_params(nbins = 6, axis = 'x')
+    sp74.set_xlim([0,102.5])
     
-    sp78 = Page7.add_subplot(588)
-    plt.plot(Me_Yslice)
-    plt.xticks([2000,8000])
-    sp78.set_title("|E| Y Slice")
+    sp75 = Page7.add_subplot(525)
+    sp75.plot(X,Vix_Yslice)
+    sp75.plot(X,Viy_Yslice)
+    sp75.plot(X,Viz_Yslice)
+    sp75.legend(['$V_{ix}$', '$V_{iy}$', '$V_{iz}$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp75.locator_params(nbins = 5, axis = 'y')
+    sp75.locator_params(nbins = 6, axis = 'x')
+    sp75.set_xlim([0,102.5])
     
-    sp79 = Page7.add_subplot(589)
-    plt.plot(Ni_Yslice)
-    plt.xticks([2000,8000])
-    sp79.set_title("Ni Y Slice")
-
-    sp710 = Page7.add_subplot(5,8,10)
-    plt.plot(Ne_Yslice)
-    plt.xticks([2000,8000])
-    sp710.set_title("Ne Y Slice")
+    sp76 = Page7.add_subplot(526)
+    sp76.plot(X,Vex_Yslice)
+    sp76.plot(X,Vey_Yslice)
+    sp76.plot(X,Vez_Yslice)
+    sp76.legend(['$V_{ex}$', '$V_{ey}$', '$V_{ez}$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp76.locator_params(nbins = 5, axis = 'y')
+    sp76.locator_params(nbins = 6, axis = 'x')
+    sp76.set_xlim([0,102.5])
     
-    sp711 = Page7.add_subplot(5,8,11)
-    plt.plot(Jx_Yslice)
-    plt.xticks([2000,8000])
-    sp711.set_title("Jx Y Slice")
+    sp77 = Page7.add_subplot(527)
+    sp77.plot(X,EBX_Yslice)
+    sp77.plot(X,EBY_Yslice)
+    sp77.plot(X,EBZ_Yslice)
+    sp77.plot(X,Meb_Yslice)
+    sp77.legend([r'$(E\times B)_x$', r'$(E\times B)_y$', r'$(E\times B)_z$', r'$\mid E\times B\mid$'], ncol = 4, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp77.locator_params(nbins = 5, axis = 'y')
+    sp77.locator_params(nbins = 6, axis = 'x')
+    sp77.set_xlim([0,102.5])
     
-    sp712 = Page7.add_subplot(5,8,12)
-    plt.plot(Jy_Yslice)
-    plt.xticks([2000,8000])
-    sp712.set_title("Jy Y Slice")
+    sp78 = Page7.add_subplot(528)
+    sp78.plot(X,Pb_Yslice)
+    sp78.plot(X,Piyy_Yslice)
+    sp78.plot(X,Peyy_Yslice)
+    sp78.plot(X,Ptot_Yslice)
+    sp78.legend(['$P_b$', '$P_{iyy}$', '$P_{eyy}$', '$P_{tot}$'], ncol = 4, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp78.locator_params(nbins = 5, axis = 'y')
+    sp78.locator_params(nbins = 6, axis = 'x')
+    sp78.set_xlim([0,102.5])
     
-    sp713 = Page7.add_subplot(5,8,13)
-    plt.plot(Jz_Yslice)
-    plt.xticks([2000,8000])
-    sp713.set_title("Jz Y Slice")
+    sp79 = Page7.add_subplot(529)
+    sp79.plot(X,Tixx_Yslice)
+    sp79.plot(X,Tiyy_Yslice)
+    sp79.plot(X,Tizz_Yslice)
+    sp79.legend(['$T_{ixx}$', '$T_{iyy}$', '$T_{izz}$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp79.locator_params(nbins = 5, axis = 'y')
+    sp79.locator_params(nbins = 6, axis = 'x')
+    sp79.set_xlim([0,102.5])
     
-    sp717 = Page7.add_subplot(5,8,17)
-    plt.plot(Vix_Yslice)
-    plt.xticks([2000,8000])
-    sp717.set_title("Vix Y Slice")
-    
-    sp718 = Page7.add_subplot(5,8,18)
-    plt.plot(Viy_Yslice)
-    plt.xticks([2000,8000])
-    sp718.set_title("Viy Y Slice")
-
-    sp719 = Page7.add_subplot(5,8,19)
-    plt.plot(Viz_Yslice)
-    plt.xticks([2000,8000])
-    sp719.set_title("Viz Y Slice")
-    
-    sp720 = Page7.add_subplot(5,8,20)
-    plt.plot(Vex_Yslice)
-    plt.xticks([2000,8000])
-    sp720.set_title("Vex Y Slice")
-    
-    sp721 = Page7.add_subplot(5,8,21)
-    plt.plot(Vey_Yslice)
-    plt.xticks([2000,8000])
-    sp721.set_title("Vey Y Slice")
-    
-    sp722 = Page7.add_subplot(5,8,22)
-    plt.plot(Vez_Yslice)
-    plt.xticks([2000,8000])
-    sp722.set_title("Vez Y Slice")
-    
-    sp725 = Page7.add_subplot(5,8,25)
-    plt.plot(EBX_Yslice)
-    plt.xticks([2000,8000])
-    sp725.set_title("EcrBx Y Slice")
-    
-    sp726 = Page7.add_subplot(5,8,26)
-    plt.plot(EBY_Yslice)
-    plt.xticks([2000,8000])
-    sp726.set_title("EcrBy Y Slice")
-    
-    sp727 = Page7.add_subplot(5,8,27)
-    plt.plot(EBZ_Yslice)
-    plt.xticks([2000,8000])
-    sp727.set_title("EcrBz Y Slice")
-    
-    sp728 = Page7.add_subplot(5,8,28)
-    plt.plot(Meb_Yslice)
-    plt.xticks([2000,8000])
-    sp728.set_title("|EcrB| Y Slice")
-    
-    sp733 = Page7.add_subplot(5,8,33)
-    plt.plot(Tixx_Yslice)
-    plt.xticks([2000,8000])
-    sp733.set_title("Tixx Y Slice")
-    
-    sp734 = Page7.add_subplot(5,8,34)
-    plt.plot(Tiyy_Yslice)
-    plt.xticks([2000,8000])
-    sp734.set_title("Tiyy Y Slice")
-    
-    sp735 = Page7.add_subplot(5,8,35)
-    plt.plot(Tizz_Yslice)
-    plt.xticks([2000,8000])
-    sp735.set_title("Tizz Y Slice")
-    
-    sp736 = Page7.add_subplot(5,8,36)
-    plt.plot(Texx_Yslice)
-    plt.xticks([2000,8000])
-    sp736.set_title("Texx Y Slice")
-    
-    sp737 = Page7.add_subplot(5,8,37)
-    plt.plot(Teyy_Yslice)
-    plt.xticks([2000,8000])
-    sp737.set_title("Teyy Y Slice")
-    
-    sp738 = Page7.add_subplot(5,8,38)
-    plt.plot(Tezz_Yslice)
-    plt.xticks([2000,8000])
-    sp738.set_title("Tezz Y Slice")
+    sp710 = Page7.add_subplot(5,2,10)
+    sp710.plot(X,Texx_Yslice)
+    sp710.plot(X,Teyy_Yslice)
+    sp710.plot(X,Tezz_Yslice)
+    sp710.legend(['$T_{exx}$', '$T_{eyy}$', '$T_{ezz}$'], ncol = 3, loc = 'upper center', bbox_to_anchor = (0.5, -0.2))
+    sp710.locator_params(nbins = 5, axis = 'y')
+    sp710.locator_params(nbins = 6, axis = 'x')
+    sp710.set_xlim([0,102.5])
     
     
     Page7.show()
 
-    
     
 i = 0
 while(i == 0):
