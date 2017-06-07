@@ -17,7 +17,8 @@ def OneD_SubSample64(Par_Orig):
         Par_Sub[i] = Par_Orig[((i*8)-1)]
     return Par_Sub
 
-def SubSampleDictionary(dict):
+# `dict` a reserved word in python, it is poor practice to use it as a variable
+def SubSampleDictionary(dict): 
     New_dict = {'bx': TwoD_SubSample64(dict['bx']),'by': TwoD_SubSample64(dict['by']),'bz': TwoD_SubSample64(dict['bz']),
     'ex': TwoD_SubSample64(dict['ex']),'ey': TwoD_SubSample64(dict['ey']),'ez': TwoD_SubSample64(dict['ez']),
     'jx': TwoD_SubSample64(dict['jx']),'jy': TwoD_SubSample64(dict['jy']),'jz': TwoD_SubSample64(dict['jz']),
@@ -31,6 +32,32 @@ def SubSampleDictionary(dict):
     'xx': OneD_SubSample64(dict['xx']),'yy': OneD_SubSample64(dict['yy'])}
     return New_dict
 
+#============================== Changes Colby Made ============================#
+
+def subsample(v, rate):
+    print("Subsampling....")
+    if len(v.shape) > 1:
+        return v[::rate, ::rate]
+    else:
+        return v[::rate]
+
+def calc_extra_vars(d):
+    for q,s in zip([1.,-1.], 'ie'):
+        for k in 'xyz': # Calc velocities
+            d['v'+s+k] = q*d['j'+s+k]/d['n'+s] 
+
+        for k in 'xx xy xz yy yz'.split(): # Calc temperatures
+            d['t'+s+k] = d['p'+s+k]/d['n'+s]
+
+    return None
+
+def ss_dict(d):
+    """ Here is a pretty way to do SubSampleDictionary
+    """
+    calc_extra_vars(d)
+    return {k: subsample(d[k], 64) for k in d}
+
+#============================== End Changes Made ============================#
 
 def P_1_6_Plots():
     Q = load_movie()
