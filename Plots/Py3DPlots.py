@@ -2,50 +2,41 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Py3D.sub import load_movie
 
-def TwoD_SubSample64(Par_Orig):
-    print("Subsampling....")
-    Par_Sub = np.empty([1024, 1024])
-    for i in range (0,1024):
-        for n in range(0,1024):
-            Par_Sub[i,n] = Par_Orig[i*8,n*8]
-    return Par_Sub
+# sub-sampling of 1D or 2D data, rate being number of points to skip
+def SubSample(data, rate):
+     if len(data.shape) > 1:
+         return data[::rate, ::rate]
+     else:
+         return data[::rate]
     
-def OneD_SubSample64(Par_Orig):
-    print("Subsampling....")
-    Par_Sub = np.empty([1024])
-    for i in range (0,1024):
-        Par_Sub[i] = Par_Orig[i*8]
-    return Par_Sub
+# sub-sampling of entire dictionary
+def SS_Dict(dictionary):
+    return {k: SubSample(dictionary[k], 6) for k in dictionary}
 
-def SubSampleDictionary(Q):
-    New_dict = {'bx': TwoD_SubSample64(Q['bx']),'by': TwoD_SubSample64(Q['by']),'bz': TwoD_SubSample64(Q['bz']),
-    'ex': TwoD_SubSample64(Q['ex']),'ey': TwoD_SubSample64(Q['ey']),'ez': TwoD_SubSample64(Q['ez']),
-    'jx': TwoD_SubSample64(Q['jx']),'jy': TwoD_SubSample64(Q['jy']),'jz': TwoD_SubSample64(Q['jz']),
-    'ni': TwoD_SubSample64(Q['ni']),'ne': TwoD_SubSample64(Q['ne']),'rho': TwoD_SubSample64(Q['rho']),
-    'jex': TwoD_SubSample64(Q['jex']),'jey': TwoD_SubSample64(Q['jey']),'jez': TwoD_SubSample64(Q['jez']),
-    'jix': TwoD_SubSample64(Q['jix']),'jiy': TwoD_SubSample64(Q['jiy']),'jiz': TwoD_SubSample64(Q['jiz']),
-    'pexx': TwoD_SubSample64(Q['pexx']),'peyy': TwoD_SubSample64(Q['peyy']),'pezz': TwoD_SubSample64(Q['pezz']),
-    'pixx': TwoD_SubSample64(Q['pixx']),'piyy': TwoD_SubSample64(Q['piyy']),'pizz': TwoD_SubSample64(Q['pizz']),
-    'pexy': TwoD_SubSample64(Q['pexy']),'peyz': TwoD_SubSample64(Q['peyz']),'pexz': TwoD_SubSample64(Q['pexz']),
-    'pixy': TwoD_SubSample64(Q['pixy']),'piyz': TwoD_SubSample64(Q['piyz']),'pixz': TwoD_SubSample64(Q['pixz']),
-    'xx': OneD_SubSample64(Q['xx']),'yy': OneD_SubSample64(Q['yy'])}
-    return New_dict
-
-
-def P_1_6_Plots():
+# primary plotting function
+def Py3D_Plots():
+    # loads initial dictionary
     Q = load_movie()
-    d = SubSampleDictionary(Q)
+    print("Sub-sampling....")
+    # sub-sample dictionary
+    d = SS_Dict(Q)
+    # set X and Y for clarity in plotting functions
     X = d['xx']
     Y = d['yy']
 #-----------------------------------------------
 
     print("Plotting Page 1...")
+    
+    # 6 Plots per page
     Page1 = plt.figure(1)
+    # formatting page
     Page1.set_size_inches(8.5,11, forward = True)
     Page1.subplots_adjust(hspace = .5)
-
+    
+    # first plot
     sp11 = Page1.add_subplot(321)
     sp11.pcolormesh(X,Y,d['bx'])
+    # formatting subplot
     sp11.locator_params(nbins = 6)
     sp11.set_title("$B_x$", fontsize=20)
     sp11.set_aspect(1)
@@ -67,7 +58,8 @@ def P_1_6_Plots():
     sp13.set_aspect(1)
     sp13.set_xlim([0,102.5])
     sp13.set_ylim([0,102.5])
-
+    
+    # calculating magnitude of Mag field
     Mb  = np.sqrt(d['bx']**2 + d['by']**2 + d['bz']**2)
     sp14 = Page1.add_subplot(324)
     sp14.pcolormesh(X,Y,Mb)
@@ -92,10 +84,10 @@ def P_1_6_Plots():
     sp16.set_aspect(1)
     sp16.set_xlim([0,102.5])
     sp16.set_ylim([0,102.5])
-
-    print("Saving Page 1...")
     
     Page1.show()
+    
+    print("Saving Page 1...")
 
     # savefig takes FOREVER for a PDF
     # PNG is a little quicker but still slow
@@ -134,6 +126,7 @@ def P_1_6_Plots():
     sp23.set_xlim([0,102.5])
     sp23.set_ylim([0,102.5])
 
+    # calculating magnitude of Elec Field
     Me  = np.sqrt(d['ex']**2 + d['ey']**2 + d['ez']**2)
     sp24 = Page2.add_subplot(324)
     sp24.pcolormesh(X,Y,Me)
@@ -142,7 +135,8 @@ def P_1_6_Plots():
     sp24.set_aspect(1)
     sp24.set_xlim([0,102.5])
     sp24.set_ylim([0,102.5])
-
+    
+    # calculating magnitude of E dot B
     EdB = d['ex']*d['bx'] + d['ey']*d['by'] + d['ez']*d['bz']
     sp25 = Page2.add_subplot(325)
     sp25.pcolormesh(X,Y,EdB)
@@ -160,9 +154,9 @@ def P_1_6_Plots():
     sp26.set_xlim([0,102.5])
     sp26.set_ylim([0,102.5])
 
-    print("Saving Page 2...")
-
     Page2.show()
+    
+    print("Saving Page 2...")
 
     #Page2.savefig('Py3D_Page_2.png', dpi = 49)
 
@@ -222,9 +216,9 @@ def P_1_6_Plots():
     sp36.set_xlim([0,102.5])
     sp36.set_ylim([0,102.5])
 
-    print("Saving Page 3...")
-
     Page3.show()
+    
+    print("Saving Page 3...")
 
     #Page3.savefig('Py3D_Page_3.png', dpi = 49)
 
@@ -260,6 +254,7 @@ def P_1_6_Plots():
     sp43.set_xlim([0,102.5])
     sp43.set_ylim([0,102.5])
 
+    # calculating velocities
     Vex = -d['jex']/d['ne']
     sp44 = Page4.add_subplot(324)
     sp44.pcolormesh(X,Y,Vex)
@@ -287,9 +282,9 @@ def P_1_6_Plots():
     sp46.set_xlim([0,102.5])
     sp46.set_ylim([0,102.5])
 
-    print("Saving Page 4...")
-
     Page4.show()
+    
+    print("Saving Page 4...")
 
     #Page4.savefig('Py3D_Page_4.png', dpi = 49)
 
@@ -328,6 +323,7 @@ def P_1_6_Plots():
     sp53.set_xlim([0,102.5])
     sp53.set_ylim([0,102.5])
 
+    # calculating temperatures
     Tixx = d['pixx']/d['ni']
     sp54 = Page5.add_subplot(324)
     sp54.pcolormesh(X,Y,Tixx)
@@ -355,9 +351,9 @@ def P_1_6_Plots():
     sp56.set_xlim([0,102.5])
     sp56.set_ylim([0,102.5])
 
-    print("Saving Page 5...")
-
     Page5.show()
+    
+    print("Saving Page 5...")
 
     #Page5.savefig('Py3D_Page_5.png', dpi = 49)
 
@@ -423,27 +419,33 @@ def P_1_6_Plots():
     sp66.set_xlim([0,102.5])
     sp66.set_ylim([0,102.5])
 
-    print("Saving Page 6...")
-
     Page6.show()
+    
+    print("Saving Page 6...")
 #
 #    #Page6.savefig('Py3D_Page_6.png', dpi = 49)
 
 #--------------------------------------------
 
+# user interface
 i = 0
 while(i == 0):
+    # catch for non-string entry
     while True:
         try:
             X = str(raw_input('Load Movie? Y or N \n '))
             break
         except ValueError:
             print("invalid input try again...\n")
+    # handling string entries
     if ((X == 'Y') or (X == 'y')):
         i = 1        
-        P_1_6_Plots()
+        Py3D_Plots()
     elif((X == 'N') or (X == 'n')):
         i = 1
         print("Load Data Cancelled")
     else:
         print("invalid input try again...\n")
+        
+        
+        
