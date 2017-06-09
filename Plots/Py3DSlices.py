@@ -2,20 +2,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Py3D.sub import load_movie
 
-
+# primary slicing and plotting function for constant X
 def sliceX(index):
+    # loading data
     d = load_movie()
     # this is a slice of constant X so plot against Y
     Y = d['yy']
+    print("slicing...")
     
+    # slicing
     Bx_Xslice = d['bx'][:,index]
     By_Xslice = d['by'][:,index]
     Bz_Xslice = d['bz'][:,index]
+    # calculating magnitude of Mag field
     Mb_Xslice = np.sqrt((d['bx'][:,index])**2 + (d['by'][:,index])**2 + (d['bz'][:,index])**2)
     
     Ex_Xslice = d['ex'][:,index]
     Ey_Xslice = d['ey'][:,index]
     Ez_Xslice = d['ez'][:,index]
+    # calculating magnitude of Elec field
     Me_Xslice = np.sqrt((d['ex'][:,index])**2 + (d['ey'][:,index])**2 + (d['ez'][:,index])**2)    
     
     Ni_Xslice = d['ni'][:,index]
@@ -25,6 +30,7 @@ def sliceX(index):
     Jy_Xslice = d['jy'][:,index]
     Jz_Xslice = d['jz'][:,index]
     
+    # calculating velocities
     Vix_Xslice = (d['jix'][:,index])/(d['ni'][:,index])
     Viy_Xslice = (d['jiy'][:,index])/(d['ni'][:,index])
     Viz_Xslice = (d['jiz'][:,index])/(d['ni'][:,index])
@@ -33,6 +39,7 @@ def sliceX(index):
     Vey_Xslice = (-d['jey'][:,index])/(d['ne'][:,index])   
     Vez_Xslice = (-d['jez'][:,index])/(d['ne'][:,index])
     
+    # calculating E X B
     EcrBI = (d['ey']*d['bz']) - (d['ez']*d['by'])
     EcrBJ = (d['ez']*d['bx']) - (d['ex']*d['bz'])
     EcrBK = (d['ex']*d['by']) - (d['ey']*d['bx'])
@@ -42,11 +49,13 @@ def sliceX(index):
     EBZ_Xslice = EcrBK[:,index]
     Meb_Xslice = MEcrB[:,index]
     
+    # calculating total pressure
     Pb_Xslice = (Mb_Xslice**2)/2
     Piyy_Xslice = d['piyy'][:,index]
     Peyy_Xslice = d['peyy'][:,index]
     Ptot_Xslice = Pb_Xslice + Piyy_Xslice + d['pezz'][:,index]
     
+    # calculating temperatures
     Tixx_Xslice = (d['pixx'][:,index])/(d['ni'][:,index])
     Tiyy_Xslice = (d['piyy'][:,index])/(d['ni'][:,index])
     Tizz_Xslice = (d['pizz'][:,index])/(d['ni'][:,index])
@@ -55,6 +64,7 @@ def sliceX(index):
     Teyy_Xslice = (d['peyy'][:,index])/(d['ne'][:,index])
     Tezz_Xslice = (d['pezz'][:,index])/(d['ne'][:,index])
     
+    print("plotting...")
     
     Page7 = plt.figure(7)
     Page7.set_size_inches(8.5,11, forward = True)
@@ -66,8 +76,10 @@ def sliceX(index):
     sp71.plot(Y,By_Xslice)
     sp71.plot(Y,Bz_Xslice)
     sp71.plot(Y,Mb_Xslice)
+    #  Latex, formatting, positioning of legend
     sp71.legend(['$B_x$', '$B_y$', '$B_z$', '$\mid B\mid$'], ncol = 2, loc = 'upper center', 
                 bbox_to_anchor = (0.5, -0.2), fontsize = 12)
+    # axes formatting 
     sp71.locator_params(nbins = 5, axis = 'y')
     sp71.locator_params(nbins = 6, axis = 'x')
     sp71.set_xlim([0,102.5])
@@ -167,10 +179,13 @@ def sliceX(index):
     
     Page7.show()
 
-    
+
+# primary slicing and plotting function for constant Y
 def sliceY(index):
     d = load_movie()
     X = d['xx']
+    
+    print("slicing...")    
     
     Bx_Yslice = d['bx'][index,:]
     By_Yslice = d['by'][index,:]
@@ -219,6 +234,7 @@ def sliceY(index):
     Teyy_Yslice = (d['peyy'][index,:])/(d['ne'][index,:])
     Tezz_Yslice = (d['pezz'][index,:])/(d['ne'][index,:])
     
+    print("plotting...")    
     
     Page7 = plt.figure(7)
     Page7.set_size_inches(8.5,11, forward = True)
@@ -331,15 +347,18 @@ def sliceY(index):
     
     Page7.show()
 
-    
+  
+# user interface  
 i = 0
 while(i == 0):
+    # catch for non string input
     while True:
         try:
             X = str(raw_input('Take Cuts? Y or N\n '))
             break
         except ValueError:
             print("invalid input try again... \n")
+    # handling string entries to first question
     if ((X == 'Y') or (X == 'y')):
         i = 1
         p = 0
@@ -350,16 +369,19 @@ while(i == 0):
                     break
                 except ValueError:
                     print("invalid input try again... \n")
+            # handling string entries for axes question
             if ((Axis == 'X') or (Axis == 'x')):
                 p = 1
                 q = 0
                 while(q == 0):
+                    # catch for non int entries
                     while True:
                         try:
                             R = int(raw_input('Enter # from 0 to 8191 \n'))
                             break
                         except ValueError:
                             print("invalid input try again... \n")
+                    # handling slice position
                     if (0 <= R <= 8191):
                         q = 1
                         sliceX(R)
