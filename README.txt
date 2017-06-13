@@ -1,10 +1,6 @@
-This is the development branch and I do not guarenty all functanility
-contained within. Good luck though.
-
-
-All of our pythong programs will be making use of SciPy and NumPy
+This anlysis package uses SciPy, NumPy and MatPlotLib.
 If you are unfamilar with these, it might be good to go and read 
-about them. Currently I am using this on yellowstone, hopefully 
+about them. Currently I am using this on yellowstone/cheyenne, hopefully 
 nothing will change between super computers. So to use python on
 yellowstone first you need to load the modules with;
 
@@ -35,8 +31,8 @@ from Py3D.vdist_plotter import VDistPlotter
 from PartTrace.testparticle import TPRun
 
 #
-But replase the path with your own path to p3dthon
+But replase the path with your own path to Py3D
 
-this will let you use p3d_runs right off the bat.
+this will let you use Py3D right off the bat.
 Good luck!
 
