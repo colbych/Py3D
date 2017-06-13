@@ -46,15 +46,19 @@ def ims3D(d,
           **kwargs):
     """ 3D version of the automated imshow (ims)
 
-    Args:
-        d (dict): The field values for a simulation, must contain xx, yy & zz
-        k (str (key of d) or numpy.array): If k is a str then it will set
-            `k = d[k], else k must be a numpy array with the dimensions
+        :param d: The field values for a simulation, must contain xx, yy & zz
+        :type d: dict
+
+        :param k: If k is a str then it will set `k = d[k]`, else k must be a 
+            numpy array with the dimensions 
             (len(d['xx']), len(d['yy']), len(d['zz'])
-        slice (tuple(int, int)): First int is the axis perpendicular to the
+        :type k: str (in d) or numpy.array
+
+        :param slice: First int is the axis perpendicular to the
             plane of the cut where 012 -> xyz. The second int is the offset
             along the axis. e.g. (2, 20) -> a cut in the X,Y plane taken at
             the 20th index in the Z direction
+        :type slice: tuple(int, int)
 
     The rest are kwargs for ims, see sub.ims
 
@@ -115,22 +119,32 @@ def ims(d,
         no_draw=None,
         ctargs={},
         **kwargs):
-    """
-    A wrapper function for imshow to do most tedious stuff for P3D simulations
+    """ A wrapper function for imshow to do most tedious stuff for P3D 
+        simulations
     
-    Args:
-        d (dict): A dictionary with relevent simualtion information.
+        :param d: A dictionary with relevent simualtion information.
             d must contain xx and yy so it will know the dimensions to plot
-        k (str or np.array): Either a str of a varible contained within d or 
-        a 2D numpy array of size (len(d['xx']), len(d['yy'])) that will be 
-        plotted.
-        cbar (bool): If true, then auto generate a colorbar
-        cont (bool): If true, then auto generate contours
-        no_draw (bool): If ture, do not call matplotlib.pylab.draw(), can
-            speed up the plotting process
-        ctargs (dict): A dictonary to pass extra argumens to the contour
-            call, so you can add more lines or set the elvels explicitly.
+        :type d: dict 
 
+        :param k: Either a str of a varible contained within d or a 2D numpy 
+            array of size (len(d['xx']), len(d['yy'])) that will be plotted.
+        :type k: str or np.array
+
+        :param cbar: If true, then auto generate a colorbar.
+        :type cbar: bool
+
+        :param cont: If true, then auto generate contours
+        :type cont: bool
+
+        :param no_draw: If ture, do not call matplotlib.pylab.draw(), can
+            speed up the plotting process
+        :type no_draw: bool
+
+        :param ctargs: A dictonary to pass extra argumens to the contour
+            call, so you can add more lines or set the elvels explicitly.
+        :type ctargs: dict
+    
+        
     """
 
     old_ax = plt.gca() # Get Current Axis
