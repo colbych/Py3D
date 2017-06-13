@@ -16,11 +16,16 @@ __all__ = ['set_local', 'ims', 'find_xpt', 'var_at', 'ims_subplot',
 def set_local(d, loc, overwrite=False):
     """ Sets the contents of a dictory d to the local namespace loc
 
-    Args:
-        d (dict): Typicly the field values for a simulation
-        loc (dict, namespace): Dictionary that keeps track of the namespace
-            you want to load to
-        overwrite (bool): If true will overwrite values in loc
+        :param d: Typicly the field values for a simulation
+        :type d: dict
+
+        :param loc: Dictionary that keeps track of the namespace
+        :type loc: dict (local namespace) 
+
+        :return: None
+
+        :param overwrite: If true will overwrite values in loc
+        :type overwrite: bool
 
     """
     for k in d: #For Key in Simulation Dictionary
