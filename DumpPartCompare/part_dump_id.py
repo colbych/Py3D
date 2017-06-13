@@ -26,9 +26,13 @@ sys.path.append(p3dthon_path)
 from Py3D.dump import Dump
 from Py3D.dumpID import DumpID
 
-############ Values are set in the exe file! ###############
+############ VALUES ARE SET IN THE EXE FILE! ###############
+############  please don't edit this unless  ###############
+############  you know what you are doing!   ###############
 
 def cast_arg(v):
+    """ A little method to convert the arguments from the exe file
+    """
     if v[0] == '[' and v[-1] == ']':
         vals = v[1:-1].split(',')
         return [float(k) for k in vals]

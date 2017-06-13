@@ -131,7 +131,7 @@ class Movie(object):
 #            fname = self.movie_path+'/movie.'+cosa+'.'+self.movie_num_str
 #            fname = os.path.abspath(fname)
 
-    def _read_movie(self, var, time, slice):
+    def _read_movie(self, var, time, slc):
         
         # Insert Comment about werid movie shape
         movie_shape = (self.ntimes,
@@ -161,6 +161,9 @@ class Movie(object):
                 norm = 256-1
                 shft = 0.0
 
+            if type(slc) is tuple and len(slc) > 2:
+                time = slc[0]
+
             cmin = self.log[var][:,0][time]
             cmax = self.log[var][:,1][time]
             
@@ -169,20 +172,25 @@ class Movie(object):
 
 
         mov = np.memmap(fname, dtype=dat_type, mode='r', shape=movie_shape)
-        mov = mov[time]
-        if slice is None:
+        if slc is None:
+            mov = mov[time]
             mov = mov.view(np.ndarray)
-        elif type(slice) is tuple:
+        elif type(slc) is tuple:
         # Colby: I know this is backwards, its how it get loaded
-            if slice[0] == 0:
-                slc = np.s_[:,:,slice[1]]
-            elif slice[0] == 1:
-                slc = np.s_[:,slice[1],:]
-            elif slice[0] == 2:
-                slc = np.s_[slice[1],:,:]
+            if len(slc) == 2:
+                if slc[0] == 0:
+                    slc = np.s_[:,:,slc[1]]
+                elif slc[0] == 1:
+                    slc = np.s_[:,slc[1],:]
+                elif slc[0] == 2:
+                    slc = np.s_[slc[1],:,:]
+                
+                mov = mov[time]
+                mov = mov[slc].view(np.ndarray)
+            else:
+                #raise NotImplementedError()
+                mov = mov[slc].view(np.ndarray)
 
-            
-            mov = mov[slc].view(np.ndarray)
 
         mov = byte_2_real(mov)
         #mov =  (1.*mov.T + shft)*(cmax - cmin)/(1.0*norm) + cmin 
@@ -240,6 +248,8 @@ class Movie(object):
                     return ntimes
                 except OSError:
                     pass
+
+            raise ShouldNotGetHereError()
 
 
 
@@ -385,16 +395,16 @@ class Movie(object):
 class UnfinishedMovie(Movie):
     """Class to load p3d movie data"""
 
-    def __init__(self, param=None):
+    def __init__(self, param=None, path='./'):
         """ Initlize a movie object
         """
         self._name_sty  = '/{0}'
-        self.path       = './'
+        self.path       = path
         self.param      = load_param(param)
         self.num        = '999'
         self.movie_vars = self._get_movie_vars()
         self.log        = self._load_log()
-        self.ntimes     = len(self.log[self.movie_vars[0]])
+        self.ntimes     = self._get_ntimes()
 
 
 def load_movie(vars=None, time=None, movie_num=None):

@@ -208,9 +208,10 @@ class TPRun:
             #c# self._B = np.array([transpose(CR['bxav']),transpose(CR['byav']),transpose(CR['bzav'])])
 
             # smooth fields may help... B is fine, E is noisy !!
+            sig = 0.
             for c in range(3):
                 self._E[c,:,:] = ndimage.gaussian_filter(self._E[c,:,:],
-                                                         sigma=6, #used to be 6
+                                                         sigma=sig, #used to be 6
                                                          order=0)
 
             # checks which component is the out of plane

@@ -284,7 +284,7 @@ class VDistPlotter(object):
         ax.set_xlabel(label_dict[k1])
         ax.set_ylabel(label_dict[k2])
 
-        title = '"{}, "'.format(sp) 
+        title = '"{}", '.format(sp) 
         for v,r0,dx in zip('XYZ', self.r0, self.dx):
             title += '{}[{:.2f}, {:.2f}], '.format(v, r0-dx/2., r0+dx/2.)
             if v == 'Y':
