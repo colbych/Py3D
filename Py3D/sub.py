@@ -193,7 +193,7 @@ def _ims(d,
 
         return_tup += (cax,)
 
-    if cont:
+    if cont or ctargs:
         if 'psi' in d:
             psi = d['psi']
         else:

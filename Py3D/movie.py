@@ -249,6 +249,8 @@ class Movie(object):
                 except OSError:
                     pass
 
+            raise ShouldNotGetHereError()
+
 
 
     def _get_movie_path(self,path):
@@ -393,11 +395,11 @@ class Movie(object):
 class UnfinishedMovie(Movie):
     """Class to load p3d movie data"""
 
-    def __init__(self, param=None):
+    def __init__(self, param=None, path='./'):
         """ Initlize a movie object
         """
         self._name_sty  = '/{0}'
-        self.path       = './'
+        self.path       = path
         self.param      = load_param(param)
         self.num        = '999'
         self.movie_vars = self._get_movie_vars()
