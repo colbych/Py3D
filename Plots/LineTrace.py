@@ -32,13 +32,28 @@ ax = fig1.add_subplot(111)  #, projection = '3d')
 # loading data
 d = load_movie()
 
+SS_Rate = 8
+
+def SubSample(Par_Orig, rate):
+    Par_Sub = np.zeros((8192/rate, 8192/rate))
+    for i in range(0,8192/rate):
+        for n in range(0,8192/rate):
+            Par_Sub[i,n] = Par_Orig[i*rate,n*rate]
+    return Par_Sub
+
+
+d['jiz'] = SubSample(d['jiz'], SS_Rate)
+d['bx'] = SubSample(d['bx'], SS_Rate)
+d['by'] = SubSample(d['by'], SS_Rate)
+d['bz'] = SubSample(d['bz'], SS_Rate)
+
 # creating magnetic field component arrays
-Comp_X = np.zeros((8192,8192))
-Comp_Y = np.zeros((8192,8192))
-#Comp_Z = np.zeros((8192,8192))
+Comp_X = np.zeros((8192/SS_Rate,8192/SS_Rate))
+Comp_Y = np.zeros((8192/SS_Rate,8192/SS_Rate))
+#Comp_Z = np.zeros((8192/SS_Rate,8192/SS_Rate))
 
 # Magnitude of magnetic field
-Mb  = np.sqrt(d['bx']**2 + d['by']**2 + d['bz']**2)
+Mb  = np.sqrt(d['bx']**2 + d['by']**2)  #+ d['bz']**2)
 
 # normalizing the components
 Comp_X = d['bx']/Mb
@@ -62,14 +77,14 @@ def Line(InitX, InitY):
     Line_Y[0] = Y
     # loop to step forward line from initial point
     for i in range(1,LineSteps):
-        if X > 8191:
-            X = 0
-        if Y > 8191:
-            Y = 0
+        if X > (8192/SS_Rate)-1:
+            X = (8192/SS_Rate)-1
+        if Y > (8192/SS_Rate)-1:
+            Y = (8192/SS_Rate)-1
         if X < 0:
-            X = 8191
+            X = 0
         if Y < 0:
-            Y = 8191
+            Y = 0
         # stepping to next point based on magnetic field slope
         # angle of magnetic field at point (X,Y)
         Angle = np.rad2deg(np.arctan2(Comp_Y[X, Y] , Comp_X[X, Y]))
@@ -126,55 +141,13 @@ def Line(InitX, InitY):
         Line_Y[i] = Y
     return Line_X, Line_Y
 
-# field lines
-Line1 = np.zeros(2)
-Line1 = Line(1000,1000)
-Line_1_X = Line1[0]
-Line_1_Y = Line1[1]
+Lines = dict()
+for t in range(1,9):
+    for q in range(1,9):
+        Lines[((t-1)*8)+q] = Line(((1000/SS_Rate)*t)-(404/SS_Rate),((1000/SS_Rate)*q)-(404/SS_Rate))
 
-Line2 = np.zeros(2)
-Line2 = Line(2000,2000)
-Line_2_X = Line2[0]
-Line_2_Y = Line2[1]
-
-Line3 = np.zeros(2)
-Line3 = Line(3000,3000)
-Line_3_X = Line3[0]
-Line_3_Y = Line3[1]
-
-Line4 = np.zeros(2)
-Line4 = Line(4000,4000)
-Line_4_X = Line4[0]
-Line_4_Y = Line4[1]
-
-Line5 = np.zeros(2)
-Line5 = Line(5000,5000)
-Line_5_X = Line5[0]
-Line_5_Y = Line5[1]
-
-Line6 = np.zeros(2)
-Line6 = Line(6000,6000)
-Line_6_X = Line6[0]
-Line_6_Y = Line6[1]
-
-Line7 = np.zeros(2)
-Line7 = Line(7000,7000)
-Line_7_X = Line7[0]
-Line_7_Y = Line7[1]
-
-Line8 = np.zeros(2)
-Line8 = Line(8000,8000)
-Line_8_X = Line8[0]
-Line_8_Y = Line8[1]
-
-# plotting
-ax.plot(Line_1_X, Line_1_Y)
-ax.plot(Line_2_X, Line_2_Y)
-ax.plot(Line_3_X, Line_3_Y)
-ax.plot(Line_4_X, Line_4_Y)
-ax.plot(Line_5_X, Line_5_Y)
-ax.plot(Line_6_X, Line_6_Y)
-ax.plot(Line_7_X, Line_7_Y)
-ax.plot(Line_8_X, Line_8_Y)
+for i in range(1,65):
+    ax.pcolormesh(d['jiz'])
+    ax.plot(Lines[i][0],Lines[i][1])
 
 plt.show()
