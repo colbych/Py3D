@@ -43,6 +43,7 @@ def SubSample(Par_Orig, rate):
 
 
 d['jiz'] = SubSample(d['jiz'], SS_Rate)
+d['jez'] = SubSample(d['jez'], SS_Rate)
 d['bx'] = SubSample(d['bx'], SS_Rate)
 d['by'] = SubSample(d['by'], SS_Rate)
 d['bz'] = SubSample(d['bz'], SS_Rate)
@@ -147,7 +148,7 @@ for t in range(1,9):
         Lines[((t-1)*8)+q] = Line(((1000/SS_Rate)*t)-(404/SS_Rate),((1000/SS_Rate)*q)-(404/SS_Rate))
 
 for i in range(1,65):
-    ax.pcolormesh(d['jiz'])
+    ax.pcolormesh(d['jiz']+d['jez'])
     ax.plot(Lines[i][0],Lines[i][1])
 
 plt.show()
