@@ -40,15 +40,17 @@ By = d['by']
 def Line(InitX, InitY): 
     
     # maximum number of steps along line if it does not hit an edge
-    MaxSteps = 50000000
+    MaxSteps = 20000000
     
-    # initial slope parameters
+    # slope variable to hold Bx/|B| at point (X,Y)
     DeltaX = 0
+    # and By/|B|
     DeltaY = 0
+    # variables to hold the slopes from point (X-1,Y-1) at the previous step
     DeltaX_Store = 0
     DeltaY_Store = 0
     
-    # the actual field line
+    # arrays to hold X and Y coordinates of field line points
     Line_X = np.zeros(MaxSteps)
     Line_Y = np.zeros(MaxSteps)
     
@@ -71,8 +73,9 @@ def Line(InitX, InitY):
             Line_X = Line_X[:Steps]
             Line_Y = Line_Y[:Steps]
             break
-        # counter for hitting an edge
+        # counter for trimming if edge is hit
         Steps = Steps + 1
+        # just a status update, sometimes it takes a long time
         if (Steps % 1000000) == 0:
             print('Step = ',Steps)
         
@@ -82,15 +85,17 @@ def Line(InitX, InitY):
         
         # differential step towards next point on field line
         # should this change with subsampling?
-        d = .00125
+        dx = .00125
         
-        # distance between field line point (X,Y) and data grid point (i,j)
+        # distance between field line point (X,Y) and lower left data grid 
+        #point (i,j), such that Wx = X - i, Wy = Y - j
         Wx = X % 1
         Wy = Y % 1
         
-        # corresponding closest lower left data grid point (i,j)
-        i = X - Wx
-        j = Y - Wy
+        # corresponding closest lower left data grid point (i,j) to field line
+        # point (X,Y)
+        i = int(X - Wx)
+        j = int(Y - Wy)
         
         # checking to see if new grid space has been entered
         if i != iStore or j != jStore:
@@ -105,18 +110,25 @@ def Line(InitX, InitY):
             By_ij1 = By[i,j+1]
             By_i1j1 = By[i+1,j+1]
             
+            # stores coordinates of lower left neighbor to test if neighbors
+            # have changed between steps so they don't need to be recalculated
+            # saves considerable run time
             iStore = i
             jStore = j
         
-        # finding average Bx, By and Bm at (X,Y)
+        # finding average Bx, By and Bm from 4 nearest neighboring data points
+        # (i,j), (i+1,j), (i,j+1) and (i+1,j+1) at field line point (X,Y)
         B_Wx = (1-Wx)*(1-Wy)*Bx_ij + (1-Wx)*Wy*Bx_ij1 + Wx*(1-Wy)*Bx_i1j + Wx*Wy*Bx_i1j1
         B_Wy = (1-Wx)*(1-Wy)*By_ij + (1-Wx)*Wy*By_ij1 + Wx*(1-Wy)*By_i1j + Wx*Wy*By_i1j1
         B_Wm = np.sqrt(B_Wx**2 + B_Wy**2)
         
-        # finding next point on line
-        DeltaX = ((d*B_Wx/B_Wm))
-        DeltaY = ((d*B_Wy/B_Wm))
+        # finding next point on field line
+        # first calculate slope of B at (X,Y)
+        DeltaX = ((dx*B_Wx/B_Wm))
+        DeltaY = ((dx*B_Wy/B_Wm))
         if Steps > 1:
+            # then find next point from slope at (X,Y) -> (Delta) and 
+            # (X-1,Y-1) -> (Delta_Store)
             Y = Y + DeltaY + .5*(DeltaY - DeltaY_Store)
             X = X + DeltaX + .5*(DeltaX - DeltaX_Store)
         # on first step we have no slope from (X-1,Y-1)
@@ -130,6 +142,7 @@ def Line(InitX, InitY):
     # returns line as two arrays of X and Y points
     return Line_X, Line_Y
 
+# Plotting single field line
 Contour = Line(4000,4000)
 # dictionary is used to conveiniently calculate 64 lines starting at points in
 # an evenly spaced grid across the 2-D field
@@ -143,7 +156,7 @@ Contour = Line(4000,4000)
 # plotting the field lines
 #for i in range(1,65):
     # plotting Jz if desired
-ax.pcolormesh(d['jz'])
+    #ax.pcolormesh(d['jz'])
     #ax.plot(Lines[i][0],Lines[i][1])
 ax.plot(Contour[0],Contour[1])
 
