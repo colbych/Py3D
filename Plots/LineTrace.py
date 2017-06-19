@@ -25,22 +25,22 @@ def SubSample(Par_Orig, rate):
     return Par_Sub
 
 # SS_Rate may be set to 1 to avoid subsampling without disturbing code
-SS_Rate = 1
+SS_Rate = 8
 # subsampling calls if necessary
-#d['jz'] = SubSample(d['jz'], SS_Rate)
-#d['bx'] = SubSample(d['bx'], SS_Rate)
-#d['by'] = SubSample(d['by'], SS_Rate)
+d['jz'] = SubSample(d['jz'], SS_Rate)
+d['bx'] = SubSample(d['bx'], SS_Rate)
+d['by'] = SubSample(d['by'], SS_Rate)
 #d['bz'] = SubSample(d['bz'], SS_Rate)
 
 # the magnetic field components
-Bx = d['bx']
-By = d['by']
+By = d['bx']
+Bx = d['by']
 
 # line tracing method
 def Line(InitX, InitY): 
     
     # maximum number of steps along line if it does not hit an edge
-    MaxSteps = 20000000
+    MaxSteps = 1000000
     
     # slope variable to hold Bx/|B| at point (X,Y)
     DeltaX = 0
@@ -69,7 +69,7 @@ def Line(InitX, InitY):
     # loop to step forward line from initial point
     for step in range(0,MaxSteps):
         # trimming line for handling hitting edge
-        if X <= 0 or Y <= 0 or Y >= 8192/SS_Rate or X >= 8192/SS_Rate:
+        if X <= 1 or Y <= 1 or Y >= 8191/SS_Rate or X >= 8191/SS_Rate:
             Line_X = Line_X[:Steps]
             Line_Y = Line_Y[:Steps]
             break
@@ -85,7 +85,7 @@ def Line(InitX, InitY):
         
         # differential step towards next point on field line
         # should this change with subsampling?
-        dx = .00125
+        dx = .0025
         
         # distance between field line point (X,Y) and lower left data grid 
         #point (i,j), such that Wx = X - i, Wy = Y - j
@@ -143,21 +143,22 @@ def Line(InitX, InitY):
     return Line_X, Line_Y
 
 # Plotting single field line
-Contour = Line(4000,4000)
+# Contour = Line(4000,4000)
+#ax.plot(Contour[0],Contour[1])
+
 # dictionary is used to conveiniently calculate 64 lines starting at points in
 # an evenly spaced grid across the 2-D field
-#Lines = dict()
-#for t in range(1,9):
-#    for q in range(1,9):
-#        print('Tracing Line # ',((t-1)*8)+q,' of 64')
-#        Lines[((t-1)*8)+q] = Line(((1000/SS_Rate)*t)-(404/SS_Rate),((1000/SS_Rate)*q)-(404/SS_Rate))
+Lines = dict()
+for t in range(1,9):
+    for q in range(1,9):
+        print('Tracing Line # ',((t-1)*8)+q,' of 64')
+        Lines[((t-1)*8)+q] = Line(((1000/SS_Rate)*t)-(404/SS_Rate),((1000/SS_Rate)*q)-(404/SS_Rate))
 
 
 # plotting the field lines
-#for i in range(1,65):
+for i in range(1,65):
     # plotting Jz if desired
-    #ax.pcolormesh(d['jz'])
-    #ax.plot(Lines[i][0],Lines[i][1])
-ax.plot(Contour[0],Contour[1])
+    ax.pcolormesh(d['jz'].T)
+    ax.plot(Lines[i][0],Lines[i][1])
 
 plt.show()
