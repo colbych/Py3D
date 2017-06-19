@@ -24,25 +24,23 @@ class Movie(object):
         self.ntimes     = self._get_ntimes()
 
 
-    def get_fields(self, vars, time=None, slice=None):
+    def get_fields(self, mvars, time=None, slc=None):
         """ Loads the field(s) var at for a given time(s)
 
-            var (string, [strings]) ::
+            :param var: A space seperated list of the varibles to load
+            :type var: string
                 a single string field name
                 a list of string field names
                 or simply 'all'
 
             time (int, None) :: what time you want to read, if None it will ask
 
-            slice (None, tuple(0-2, int)) :: if you want to load only a slice
+            slc (None, tuple(0-2, int)) :: if you want to load only a slice
                 of a 3D movie file (to save time?) the first int it what plane
                 that you dont want, and the second is the off set
         """
 
-        if 'all' in vars:
-            vars = tuple(self.movie_vars)
-        elif type(vars) is str:
-            vars = [vars]
+        mvars = tuple(self.movie_vars) if 'all' in mvars else mvars.split()
         
         def check_if_time_in_file(t):
             try:
@@ -63,13 +61,13 @@ class Movie(object):
 
 
         flds = {} 
-        for v in vars:
+        for v in mvars:
             if v not in self.movie_vars:
                 err_msg = 'var {0} not found in posible field values.\n{1}'
                 err_msg = err_msg.format(v,self.movie_vars)
                 raise KeyError(err_msg)
 
-            flds[v] = self._read_movie(v,time,slice)
+            flds[v] = self._read_movie(v,time,slc)
         
         
         xyz_vecs = self._get_xyz_vectors()
@@ -407,7 +405,8 @@ class UnfinishedMovie(Movie):
         self.ntimes     = self._get_ntimes()
 
 
-def load_movie(vars=None, time=None, movie_num=None):
+# Is this nothing? I think this is garbage right now and should be cleaned up
+def load_movie(mvars=None, time=None, movie_num=None):
     param = glob.glob('./param*')
 
     M = Movie(param=param, num=movie_num)
@@ -418,9 +417,7 @@ def load_movie(vars=None, time=None, movie_num=None):
 
         get_time_msg = get_time_msg.format(M.ntimes, M.num)
 
-        time = -1 
-        attempt_tol = 5
-        ctr = 0
+        time, attempt_tol, crt = -1,5,0
         while time not in range(M.ntimes) and ctr < attempt_tol:
             time = raw_input(get_time_msg)
             ctr =+ 1

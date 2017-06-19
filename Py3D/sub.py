@@ -944,7 +944,7 @@ def rotate_ten(d,
                               d[var+'zz'+av] - 
                               d[var+'par'+av])/2.
 
-        CR[var+'perp2'+av] = CR[var+'perp1'+av]
+        d[var+'perp2'+av] = d[var+'perp1'+av]
 
 #======================================================
 
