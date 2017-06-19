@@ -1,10 +1,19 @@
 from scipy.ndimage import gaussian_filter as gf
+import Py3D
 import numpy as np
-import _methods
+#import _methods
 
 class PatPlotter(object):
+    """ A class to load and plot a simulation in the style of kittypat
+    """
+
     def __init__(self, **mvargs):
-        self._M = Movie(**mvargs)
+        """ Make a set of plots like kittypat used to
+
+        :param mvargs: Keyword arguments inteneded to be passed to Py3D.Movie
+        :type mvargs: kwargs or dict
+        """
+        self._M = Py3D.Movie(**mvargs)
         self.ctrs = []
         self.page_counter = 0
 
@@ -21,12 +30,13 @@ class PatPlotter(object):
         self.page_vars_2D = [k.split() for k in pgv2]
         self.page_vars_1D = [k.split() for k in pgv1]
 
+#========================================
 
-    def make_plots(self, time=None, slc=None)
+    def make_plots(self, time=None, slc=None):
         if slc is not None:
             slc = slc[::-1] 
 
-        self.d  = self._load_movie()
+        self.d  = self._load_movie(time, slc)
 
         # These will need to be arguments
         self.sig = 3
@@ -57,12 +67,12 @@ class PatPlotter(object):
             self._plot2D_set_lims()
             self.savefig()
 
-    for pgnc,ipc in enumerate(ipcs):
-        self.clean_fig()
-        self._plot1D()
-        self.plot_psi_intercepts(a, d, psi0, ipc)
-            
-        self.savefig(fig, pgnc+pgn+1)
+        for pgnc,ipc in enumerate(self.ipcs):
+            self.clean_fig()
+            self._plot1D()
+            self.plot_psi_intercepts(a, d, psi0, ipc)
+                
+            self.savefig(fig, pgnc+pgn+1)
 
 
 #========================================
@@ -176,7 +186,7 @@ class PatPlotter(object):
         for a,vrs in zip(self.ax, page_vars_1D):
 
             _sl = []
-            for v,l,pwargs in zip(vrs, var_labels, plott_kwargs)]
+            for v,l,pwargs in zip(vrs, var_labels, plott_kwargs):
                 _sl += a.plot(_xy, gf(v, sigma=self.sig), label=l)
         
             lines += [_sl]
@@ -208,12 +218,18 @@ class PatPlotter(object):
 
 #========================================
 
-    def _load_movie(self, time, slc)
+    def _load_movie(self, time, slc):
         mvars = 'all'
-        d = self._M.get_fields('all', time, slice=slc)
+        d = self._M.get_fields('all', time, slc=slc)
 
-        d['xx'] = d['xx'][ip]
-        d['yy'] = d['yy'][jp]
+        # This is dumb and should be done in moive
+        #if slc is None:
+        #    ip,jp = 2*[np.s_[:]]
+        #else:
+        #    ip,jp = slc[:2]
+
+        #d['xx'] = d['xx'][ip]
+        #d['yy'] = d['yy'][jp]
 
         for q,s in zip([1.,-1.],'ie'):
             for k in 'xx xy xz yy yz zz'.split():
@@ -255,7 +271,7 @@ class PatPlotter(object):
         self.fig.savefig(fname)
 
 
-def pat_plots( slc=None, **mvargs):
+def pat_plots(slc=None, **mvargs):
     """ Make a bunch of figures in the style of Kittypat's work
         
         :param slc: A subslice if you do not want to plot everything

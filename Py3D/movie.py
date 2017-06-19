@@ -70,13 +70,14 @@ class Movie(object):
             flds[v] = self._read_movie(v,time,slc)
         
         
-        xyz_vecs = self._get_xyz_vectors()
+        xyz_vecs = self._get_xyz_vectors(time, slc)
         for k in xyz_vecs:
             flds[k] = xyz_vecs[k]
 
         return flds
 
-    def _get_xyz_vectors(self):
+
+    def _get_xyz_vectors(self, time, slc):
         xyz_vecs = {}
 
         dx = self.param['lx']/(self.param['pex']*self.param['nx'])
@@ -85,9 +86,21 @@ class Movie(object):
         dy = self.param['ly']/(self.param['pey']*self.param['ny'])
         xyz_vecs['yy'] = np.arange(dy/2.,self.param['ly'],dy)
 
-        if self.param['pez']*self.param['nz'] > 1:
-            dz = self.param['lz']/(self.param['pez']*self.param['nz'])
-            xyz_vecs['zz'] = np.arange(dz/2.,self.param['lz'],dz)
+        #if self.param['pez']*self.param['nz'] > 1:
+        dz = self.param['lz']/(self.param['pez']*self.param['nz'])
+        xyz_vecs['zz'] = np.arange(dz/2.,self.param['lz'],dz)
+
+        try:
+            dt = self.param['n_movieout']*self.param['dt']
+        except KeyError:
+            dt = self.param['movieout']
+        xyz_vecs['tt'] = dt*np.arange(self.ntimes)
+        
+        if slc is not None:
+            for s,vv in zip(slc, 'tt zz yy xx'.split()):
+                xyz_vecs[vv] = xyz_vecs[vv][s]
+        else:
+            xyz_vecs['tt'] = dt*np.arange(time)
 
         return xyz_vecs
 #        if type(var) is not list:
