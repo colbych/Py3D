@@ -76,9 +76,8 @@ class Dump(object):
         """ #   Method      : read_dump_parts
         """
        
-        _sh = ('hybrid' in self.param, 'USE_SIMPLE_IO' in self.param)
-        if _sh[0] or _sh[1]:
-            if _sh[0] and _sh[1]:
+        if 'hybrid' in self.param:
+            if 'USE_SIMPLE_IO' in self.param:
                 return self._read_parts_simple_IO_hybrid(index, wanted_procs)
             else:
                 raise NotImplementedError()

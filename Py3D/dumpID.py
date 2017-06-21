@@ -65,7 +65,11 @@ class DumpID(object):
             dx0[c] = dx_i
 
         if species is None:
-            parts = {'i':[], 'e':[]}
+            if 'hybrid' in self.param:
+                parts = {'i':[]}
+            else:
+                parts = {'i':[], 'e':[]}
+
         else:
             parts = {species:[]}
 
@@ -286,6 +290,11 @@ class DumpID(object):
 
         p0_rng = set(p0_rng) #This removes duplicates
 
+        #if 'hybrid' in self.param:
+        #    return _di_dict_hybrid()
+
+        #pdb.set_trace()
+
         di_dict = {}
         for p in p0_rng:
             d = self._proc_to_dumplocation(*p)
@@ -371,6 +380,7 @@ class DumpID(object):
         return px,py,pz
 
 
+
     def _proc_to_dumplocation(self, px, py, pz):
         """ Returns the dump index (di), as well as the postion in the array 
             returned in _get_particles(dump_index=di)
@@ -399,13 +409,16 @@ class DumpID(object):
                        'Use at your own risk!'
             dump_IO_version = 'V2'
             warnings.warn(warn_msg)
+        
+        if 'hybrid' in self.param:
+            dump_IO_version = 'hybrid'
        
         if dump_IO_version == 'V1':
             #print 'Using IO V1...'
             N = (px - 1)%nch + 1
             R = (pz - 1)*(pex/nch)*(pey) + (pex/nch)*(py - 1) + (px - 1)/nch
 
-        else: # dump_IO_version == 'V2'
+        elif dump_IO_version == 'V2':
             #print 'Using IO V2...'
             npes_per_dump = pex*pey*pez/nch
 
@@ -414,7 +427,10 @@ class DumpID(object):
             N = pe/npes_per_dump + 1
             R = pe%npes_per_dump
 
+        else: # dump_IO_version == 'hybrid':
+            #pdb.set_trace()
+            N = pex*(py - 1) +  (px - 1) + 1
+            R = 0
+
         return _num_to_ext(N),R
-
-
 
