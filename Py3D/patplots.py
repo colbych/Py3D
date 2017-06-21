@@ -1,6 +1,7 @@
 from scipy.ndimage import gaussian_filter as gf
-import Py3D
 import numpy as np
+import Py3D
+import pdb
 #import _methods
 
 class PatPlotter(object):
@@ -15,7 +16,6 @@ class PatPlotter(object):
         """
         self._M = Py3D.Movie(**mvargs)
         self.ctrs = []
-        self.page_counter = 0
 
 
         pgv2 = ['ni rho bx ex by ey bz ez |b| jx jy jz',
@@ -32,25 +32,34 @@ class PatPlotter(object):
 
 #========================================
 
-    def make_plots(self, time=None, slc=None):
+    def make_plots(self, 
+                   time=None,
+                   slc=None,
+                   xy_lims=None,
+                   cut_dir='y',
+                   **kwargs):
+
         if slc is not None:
             slc = slc[::-1] 
 
-        self.d  = self._load_movie(time, slc)
-
         # These will need to be arguments
         self.sig = 3
-        self.xy_lims = [[4.5, 6.], [7.3, 8.]]
+        #self.xy_lims = [[4.5, 6.], [7.3, 8.]]
+
+        # Commented out
+        self.d  = self._load_movie(time, slc)
+        self._cut_dir =  cut_dir
+        self._not_cut_dir = 'xy'[abs(1 - 'xy'.find(self._cut_dir))]
+        self._created_files = []
 
         # This is gonna need a whole thing
-        psi0 = 2.3915547; dpsi = .05; npsi = 10
+        psi0, levels = self._calc_psi0()
+        self.psi0 = psi0
+        
+        ctargs = dict(linewidths=.5, levels=levels)
 
-        ctargs = dict(linewidths=.5, 
-                      levels=arange(psi0 - dpsi*npsi,
-                                    psi0 + dpsi*npsi,
-                                    dpsi))
-
-        self._ctrs = self._gen_conts(d, **ctargs)
+        #Skipping this too for right now
+        self._ctrs = self._gen_conts(**ctargs)
 
         ldgargs = dict(loc=3, ncol=10, borderaxespad=0., frameon=0, 
             prop={'size':6}, bbox_to_anchor=(0., 1.02, 1., .102))
@@ -60,22 +69,22 @@ class PatPlotter(object):
         self.xpcs = _x
         self.ipcs = _i
 
+        self.page_counter = 0
         for page_vars in self.page_vars_2D:
             self.clean_fig()
             self._plot2D(page_vars, **kwargs)
             self._plot2D_cutlines()
-            self._plot2D_set_lims()
+            self._plot2D_set_lims(xy_lims)
             self.savefig()
 
-        for pgnc,ipc in enumerate(self.ipcs):
+        for ipc in self.ipcs:
             self.clean_fig()
-            self._plot1D()
-            self.plot_psi_intercepts(a, d, psi0, ipc)
+            self._plot1D(ipc, ldgargs=ldgargs)
+            self.plot_psi_intercepts(ipc)
                 
-            self.savefig(fig, pgnc+pgn+1)
+            self.savefig()
 
-
-#========================================
+        self._make_pdf()
 
 #========================================
 
@@ -89,7 +98,7 @@ class PatPlotter(object):
 
             print 'Plotting {}...'.format(v)
             vrs = gf(self.d[v], sigma=self.sig)
-            pcm += [ps.ims(self.d, vrs, ax=a, no_draw=1, **kwargs)]
+            pcm += [Py3D.sub.ims(self.d, vrs, ax=a, no_draw=1, **kwargs)]
 
             for c in self._ctrs:
                 a.plot(*c, color='k',linewidth=.5)
@@ -107,9 +116,9 @@ class PatPlotter(object):
     def _plot2D_cutlines(self):
         lines = []
         for a in self.ax:
-            for ipc in self._ipcs:
-                lines += a.plot(d['yy']*0.+d['xx'][ipc], 
-                                d['yy'],
+            for ipc in self.ipcs:
+                lines += a.plot(self.d['yy']*0. + self.d['xx'][ipc], 
+                                self.d['yy'],
                                 'k--',
                                 linewidth=.5)
         return lines
@@ -126,8 +135,15 @@ class PatPlotter(object):
 #========================================
 
     def _gen_xcuts(self):
-        xpcs = arange(4.6, 6., .1)
+        ll = (self.d[2*self._not_cut_dir][-1] +
+              self.d[2*self._not_cut_dir][0])
+
+        ncuts = 10
+        #xpcs = np.arange(4.6, 6., .1)
+        xpcs = np.arange(10)/10.*ll
+
         ipcs = [abs(self.d['xx'] - k).argmin() for k in xpcs]
+
         return xpcs, ipcs
 
 #========================================
@@ -155,7 +171,7 @@ class PatPlotter(object):
 
 #========================================
 
-    def _plot1D(self, ip, page_vars_1D, var_labels, loc,
+    def _plot1D(self, ip, var_labels=None,
                ptargs=None,
                ldgargs=None,
                xlim=None,
@@ -167,9 +183,11 @@ class PatPlotter(object):
             ax : (matplotlib.pyplot.axis)
             xy : (numpy.array)
             vrs : [numpy.array]
+
+            Todo: Fix the stuipd kwargs
         """
 
-        if var_labels is None: var_labels = page_vars
+        if var_labels is None: var_labels = self.page_vars_1D
 
         # We will come back it this if we have to
         #if not ptargs: 
@@ -177,44 +195,92 @@ class PatPlotter(object):
         #elif type(ptargs) is dict:
         #    ptargs =3*(ptargs,)
 
-        _xy = self.d[2*cut_dir]
+        _xy = self.d[2*self._cut_dir]
         _lim = _xy[[0,-1]]
         _cut_index = np.s_[ip,:]
-        if _cut_dir is 'x': _cut_index = _cut_index[::-1]
+        if self._cut_dir is 'x': _cut_index = _cut_index[::-1]
 
         lines = []
-        for a,vrs in zip(self.ax, page_vars_1D):
+        for a,vrs,labs in zip(self.ax, self.page_vars_1D, var_labels):
 
             _sl = []
-            for v,l,pwargs in zip(vrs, var_labels, plott_kwargs):
-                _sl += a.plot(_xy, gf(v, sigma=self.sig), label=l)
+            #for v,l,pwargs in zip(vrs, var_labels, plot_kwargs):
+            for v,l in zip(vrs, labs):
+                gfv = gf(self.d[v][_cut_index], sigma=self.sig)
+                _sl += a.plot(_xy, gfv, label=l)
         
             lines += [_sl]
 
             a.set_xlim(_lim)
-            a.set_title('cut @ x = %1.2f'%loc,size=6,loc='right')
+            
+            _tl = 'cut @ {} = {:1.2f}'.format(self._not_cut_dir, 
+                self.d[2*self._not_cut_dir][ip])
+
+            a.set_title(_tl, size=6, loc='right')
 
             if ldgargs:
                 if type(ldgargs) is not dict: ldgargs = {}
-                ax.legend(**ldgargs)
+                a.legend(**ldgargs)
+            
+            a.minorticks_on()
 
         return lines
 
 #========================================
 
-    def psi_intercepts(self, d, psi0, ipc):
-        import numpy as np
-        jh = len(d['psi'][0,:])//2
-        return np.abs(d['psi'][ipc,:jh] - psi0).argmin(),\
-               np.abs(d['psi'][ipc,jh:] - psi0).argmin() + jh
+    def _calc_midplane(self):
+        return np.abs(self.d['bx']).argmin(axis=1)
 
 #========================================
 
-    def plot_psi_intercepts(self, ax, d, psi0, ipc):
-        yl = ax.get_ylim()
-        for kp in psi_intercepts(d, psi0, ipc):
-            ax.plot(2*[d['yy'][kp]], yl, 'k--', linewidth=.5)
-        ax.set_ylim(yl)
+    def _calc_psi0(self):
+        mp = self._calc_midplane()
+        xrng = np.arange(len(mp))
+
+        #bs = (self.d['bx'][:,mp]**2 + self.d['by'][:,mp]**2)
+
+        #argx = [self.d['psi'][np.arange(len(mp)), mp].argmax(),
+        #        self.d['psi'][np.arange(len(mp)), mp].argmin()]
+        
+
+
+        # This is an ok way to do this, but it might be prone to mistakes
+        #pdb.set_trace()
+        #arg_psi0 = argx[np.array([bs[ag, mp[ag]] for ag in argx]).argmin()]
+
+        #arg_psi0 = (arg_psi0, mp[arg_psi0])
+
+        if self.d['bx'][0,-1] - self.d['bx'][0,0] > 0.:
+            arg_psi0 = self.d['psi'][xrng, mp].argmax()
+        else:
+            arg_psi0 = self.d['psi'][xrng, mp].argmin()
+        
+        psi0 = self.d['psi'][xrng[arg_psi0], mp[arg_psi0]]
+        npsi = 10
+        dpsi = np.abs(psi0 - self.d['psi'][arg_psi0, 4])/(npsi/2.)
+
+        levels= np.arange(psi0 - dpsi*npsi, psi0 + dpsi*npsi, dpsi)
+        
+        return psi0, levels
+
+#========================================
+    def plot_psi_intercepts(self, ipc):
+        
+        for a in self.ax:
+            yl = a.get_ylim()
+            for kp in self._psi_intercepts(ipc):
+                xl = 2*[self.d[2*self._cut_dir][kp]]
+                a.plot(xl, yl, 'k--', linewidth=.5)
+
+            a.set_ylim(yl)
+
+#========================================
+
+    def _psi_intercepts(self, ipc):
+        jh = len(self.d['psi'][0,:])//2
+
+        return np.abs(self.d['psi'][ipc,:jh] - self.psi0).argmin(),\
+               np.abs(self.d['psi'][ipc,jh:] - self.psi0).argmin() + jh
 
 #========================================
 
@@ -235,16 +301,17 @@ class PatPlotter(object):
             for k in 'xx xy xz yy yz zz'.split():
                 d['t'+s+k] = d['p'+s+k]/d['n'+s]
 
-            ps.rotate_ten(d,'t'+s, av='')
+            Py3D.sub.rotate_ten(d,'t'+s, av='')
 
             for k in 'xyz':
                 d['v'+s+k] = q*d['j'+s+k]/d['n'+s]
             
             mag = lambda _x,_y: _x**2 + _y**2
 
-            d['|b|'] = np.sqrt(reduce(mag, (d['b'+k] for k in'xyz')))
+            #d['|b|'] = np.sqrt(reduce(mag, (d['b'+k] for k in'xyz')))
+            d['|b|'] = np.sqrt(d['bx']**2 + d['by']**2 + d['bz']**2)
 
-            d['psi'] = ps.calc_psi(d)
+            d['psi'] = gf(Py3D.sub.calc_psi(d), sigma=self.sig)
 
         return d
 
@@ -264,12 +331,27 @@ class PatPlotter(object):
 
 #========================================
 
-    def savefig(self, pgn, ext='png', dpi=300):
-        fname = '{:03d}_patplots_save.{}'.format(page_counter, ext)
+    def savefig(self, ext='png', dpi=2800):
+        fname = '{:03d}_patplots_save.{}'.format(self.page_counter, ext)
         print 'Saving {}...'.format(fname)
         self.fig.tight_layout()
         self.fig.savefig(fname)
+        self._created_files += [fname]
 
+#========================================
+
+    def _make_pdf(self, overwrite=0):
+        from subprocess import call
+        pdfname = Py3D.sub.date_file_prefix() + 'patplot.pdf'
+        print 'Making the pdf...'
+        call(['convert']+self._created_files+[pdfname])
+
+        print 'Removing files...'
+        call(['rm','-f'] + self._created_files)
+
+        self._created_files = []
+
+#========================================
 
 def pat_plots(slc=None, **mvargs):
     """ Make a bunch of figures in the style of Kittypat's work
