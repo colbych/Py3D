@@ -312,9 +312,10 @@ def var_at(fdic, key, r0, ordflg='idl'):
 def load_movie(num=None,
                param=None,
                path='./',
-               vars='all',
+               vrs='all',
                time=None,
-               slice=None):
+               slc=None,
+               name_style='p3d'):
 
     """ Parameters
         ----------
@@ -324,13 +325,28 @@ def load_movie(num=None,
             name of param file, If None it will ask.
         path : str
             where movie files are. (Assumese in local dir)
-        vars : str or array of strs
+        vrs (vars) : str or array of strs
             what varibles to load ['bx', 'by', 'bz', ..],
             Assumes that you want to load 'all'
+        slc (slice) : slice
+            A slice from the movie. It is easiest to just pass 
+            np.s_[x, y, z, t], where x,y,z,t are the the range
+            over the coresponding axes
         time : int
             what time to load the move from. If None it will ask
+        name_style : str ('p3d' or 'tulasi' or 'unfinished')
+            Tulasi's version of the code has different nameing convention
+            for movie files, so you have to used the UnfinsihedMovie
+            object to get this to work.
     """
-    return Movie(num,param,path).get_fields(vars,time,slice)
+
+    if name_style is 'p3d':
+        return Movie(num,param,path).get_fields(vrs,time,slc)
+    elif name_style.lower() in ['tulasi', 'unfinished'] :
+        from Py3D.movie import UnfinishedMovie
+        return UnfinishedMovie(param,path).get_fields(vrs,time,slc)
+
+
 
 #======================================================
 
