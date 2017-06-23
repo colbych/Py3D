@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io.idl import readsav 
@@ -91,7 +92,7 @@ def ims3D(d,
                   'where 0 -> Y,Z plane\n'\
                   '      1 -> Z,x plane\n'\
                   'and   2 -> X,Y plane'
-        print err_msg.format(slice[0])
+        print(err_msg.format(slice[0]))
         raise IOError()
     
     return_tuple = _ims(d,plt_val,xlab,ylab,ext,ax,extent,cbar,
@@ -238,10 +239,10 @@ def find_xpt(d):
 
     if lBm > uBm: #Upper
         ip = psi[jp,:].argmax()
-        print 'Finding upper max'
+        print('Finding upper max')
     else:         #Lower
         ip = psi[jp,:].argmin()
-        print 'Finding lower min'
+        print('Finding lower min')
     xp = d['xx'][ip]
 
     return ip,jp,xp,yp
@@ -377,11 +378,11 @@ def check_energy_conservation(mov_num=0,
     vs = 'pexx peyy pezz pixx piyy pizz ne ni'.split()
     if ims_var not in vs: vs.append(ims_var)
 
-    print 'Loading Energy from p3d.stdout.000...'
+    print('Loading Energy from p3d.stdout.000...')
     try:
         engs = show_energy('p3d.stdout.000').astype(float)
     except:
-        print 'p3d.stdout.000 file not found!'
+        print('p3d.stdout.000 file not found!')
         return None
 
     try:
@@ -389,10 +390,10 @@ def check_energy_conservation(mov_num=0,
 
         if use_UFM:
             from Py3D.movie import UnfinishedMovie
-            print 'Loading temperatures from movies...'
+            print('Loading temperatures from movies...')
             M = UnfinishedMovie(param_file)
         else:
-            print 'Loading temperatures from movie.???.000...'
+            print('Loading temperatures from movie.???.000...')
             M = Movie(0,param_file)
         slc = (2,0) if M.param['nz']*M.param['pez'] > 1 else None
 
@@ -402,7 +403,7 @@ def check_energy_conservation(mov_num=0,
         df = M.get_fields(vs, final_time, slice=slc)
 
     except:
-        print 'Moive did not load properly! Exiting!!!'
+        print('Moive did not load properly! Exiting!!!')
         return None
     
     fig = plt.figure(1)
@@ -523,16 +524,16 @@ def multi_color(slice=None, draw=False):
         slice = (slice[0], s2)
 
 
-    print 'Slice = ',slice
-    print 'Making subplots...'
+    print('Slice = ',slice)
+    print('Making subplots...')
     ax = [fig.add_subplot(6,5,c+1) for c in range(6*5)]
     im = []
     for a,k in zip(ax,M.movie_vars):
 
-        print 'loading ',k
+        print('loading ',k)
         d = M.get_fields(k, time=t, slice=slice)
 
-        print 'plotting ',k
+        print('plotting ',k)
         ttl = k
         if M.param['pez']*M.param['nz'] > 1:
             im.append(ims3D(d,k,a, no_draw=not draw, slice=slice))
@@ -573,12 +574,12 @@ def three_plane(v, r0=[0., 0., 0.], **imsargs):
     xyz = M._get_xyz_vectors()
     ind0 = [np.argmin(np.abs(xyz[k+k] - r)) for r,k in zip(r0,'xyz')]
 
-    print 'Making subplots...'
+    print('Making subplots...')
     ax = [fig.add_subplot(2,2,c+1) for c in [0,3,2]]
     im = []
    
     for c in range(3):
-        print 'loading x,y slice of {} @ kp_z={}'.format(v,ind0[2])
+        print('loading x,y slice of {} @ kp_z={}'.format(v,ind0[2]))
 
         slice = ((c+2)%3,ind0[(c+2)%3])
 
@@ -618,7 +619,7 @@ def _movie_start_plot():
     t = raw_input('Enter time between {}-{}: '.format(0,M.ntimes-1))
     t = int(t)
 
-    print 'Getting Fgiure...'
+    print('Getting Fgiure...')
     fig = plt.gcf()
     fig.clf()
     istate = plt.isinteractive
@@ -678,7 +679,8 @@ def calc_psi(d):
 
     psi = 0.0*bx
     psi[0,1:] = np.cumsum(bx[0,1:])*(d['yy'][2] - d['yy'][1])
-    psi[1:,:] = psi[0,:] - np.cumsum(by[1:,:], axis=0)*(d['xx'][2] - d['xx'][1])
+    psi[1:,:] = (psi[0,:] - np.cumsum(by[1:,:], axis=0)*
+                (d['xx'][2] - d['xx'][1]))
     return psi
 
 #======================================================
@@ -695,8 +697,8 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
     elif dir == 'y':
         xarr = xarr*0.0 + itcpt
     else:
-        print 'I dont understand what direction ' + str(dir) + \
-              'is! Nothing plotted.'
+        print('I dont understand what direction', str(dir),
+              'is! Nothing plotted.')
         return None
 
     ax.plot(xarr,yarr,**kwargs)
@@ -717,7 +719,7 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #
 #    if way == 'fast':
 #        CC = p3d_run('local',param=param)
-#        print 'Loading time %i'%0
+#        print('Loading time %i'%0)
 #        CR = CC.load_movie('all',0)
 #
 #        ntimes = CC.movie.num_of_times
@@ -733,12 +735,12 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #            CR[k+'av'] = CR[k]/1.0/ntimes
 #            CR[k] = _[k][-1,:,:]
 #
-#        print 'TOTAL TIME: %f'%(time.time() - t)
+#        print('TOTAL TIME: %f'%(time.time() - t))
 #
 #    else:
 #    ## First way I tried, may be slow?
 #        CC = p3d_run('local',param=param)
-#        print 'Loading time %i'%0
+#        print('Loading time %i'%0)
 #        CR = CC.load_movie('all',0,mov)
 #        
 #        if ntimes is None:
@@ -750,7 +752,7 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #
 #        t = time.time()
 #        for cosa in range(1,ntimes):
-#            print '\n==================\n' \
+#            print('\n==================\n' \)
 #                    'Loading time %i' \
 #                  '\n==================\n'%cosa
 #            _ = CC.load_movie('all',cosa)
@@ -769,7 +771,7 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #        CR['teperp1av'] = CR['peperp1av']/CR['neav']
 #        CR['teperp2av'] = CR['peperp2av']/CR['neav']
 #
-#        print 'TOTAL TIME: %f'%(time.time() - t)
+#        print('TOTAL TIME: %f'%(time.time() - t))
 #
 #        CRL = {}
 #        CRU = {}
@@ -785,9 +787,9 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #                CRL[k] = CR[k]
 #                CRU[k] = CR[k]
 #        
-#        print 'Saving lower data...'
+#        print('Saving lower data...')
 #        np.save(fname+'_lower',CRL)
-#        print 'Saving upper data...'
+#        print('Saving upper data...')
 #        np.save(fname+'_upper',CRU)
 #
 #        if save_full:
@@ -815,20 +817,20 @@ def roll_run(d, sx=None):
     kavlst = [k+'av' for k in klst]
     if sx is None:
         if d['yy'][0] < 1.0: 
-            print 'Gonna roll RIGHT!!!!!!!!!!!!'
+            print('Gonna roll RIGHT!!!!!!!!!!!!')
             sx = -1*np.size(d['xx'])/4
         else: 
-            print 'Gonna roll LEFT!!!!!!!!!!!!'
+            print('Gonna roll LEFT!!!!!!!!!!!!')
             sx = np.size(d['xx'])/4
     
     for key in d.keys():
 # Old way not super smart
 #        if key.rfind('av') == len(key)-2 and len(key) > 2:
-#            print 'Rolling ',key
+#            print('Rolling ',key)
 #            d[key] = np.roll(d[key],sx,axis=1)
 # New way a little bit smarter
         if key in klst or key in kavlst:
-            print 'Rolling ',key
+            print('Rolling ',key)
             d[key] = np.roll(d[key],sx,axis=1)
 
 #======================================================
@@ -866,8 +868,8 @@ def rotate_ten(d,
                full_rotate=False):
 
     if var+'par'+av in d and not overwrite:
-        print 'Warning: {} was found in the'.format(var+'par'+av) +\
-              'restored data: nothing will be rotated!!!!'
+        print('Warning: {} was found in the'.format(var+'par'+av),
+              'restored data: nothing will be rotated!!!!')
         pass
 
         
@@ -972,7 +974,7 @@ def calc_pdf(ar, pdf_min=None, pdf_max=None, weight=100, inc=0, ax=0):
     """
     
     if len(ar) == 0:
-        print 'No array provided! Exiting!'
+        print('No array provided! Exiting!')
         return
     if pdf_min is None:
         pdf_min = ar.min()

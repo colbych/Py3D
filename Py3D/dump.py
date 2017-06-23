@@ -6,15 +6,16 @@
 #                                                                     #
 #                                                                     #
 #######################################################################
-import os
-import sys 
+from __future__ import print_function
+import os, sys 
 import pdb
 import time
 import glob
 import struct
 import numpy as np
-from _methods import load_param
-from _methods import _num_to_ext
+from ._methods import load_param
+from ._methods import _num_to_ext
+
 
 # Change foo.has_key(bar) to bar in foo 
 class Dump(object):
@@ -91,8 +92,8 @@ class Dump(object):
         parts = self._pop_particles(F,wanted_procs)
 
         if F.read():
-            print 'ERROR: The entire dump file was not read.\n'\
-                  '       Returning what was read.'
+            print('ERROR: The entire dump file was not read.\n'
+                  '       Returning what was read.')
         F.close()
 
         return parts
@@ -158,7 +159,7 @@ class Dump(object):
         flds = []
         for ind in tuple(index): #This might make things run faster
             ind = _num_to_ext(ind)
-            print 'Loading p3d-{}.{}'.format(ind, self.num)
+            print('Loading p3d-{}.{}'.format(ind, self.num))
             F = self._open_dump_file(ind)
             self._read_header(F)
             flds += [self._pop_fields(F)]
@@ -213,11 +214,11 @@ class Dump(object):
         attempt_tol = 5
         path = os.path.abspath(path)
         choices =  get_choices(path)
-        print path
+        print(path)
 
         c = 0
         while not choices and c < attempt_tol:
-            print '='*20 + ' No dump files found ' + '='*20
+            print('='*20 + ' No dump files found ' + '='*20)
             path = os.path.abspath(raw_input('Please Enter Path: '))
             choices =  get_choices(path)
             c =+ 1
@@ -236,8 +237,8 @@ class Dump(object):
         try:
             F = open(fname, "rb")
         except IOError as e:
-            print "I/O error({0}): {1}".format(e.errno, e.strerror)
-            print "ERROR: Could not open file. " + fname
+            print("I/O error({0}): {1}".format(e.errno, e.strerror))
+            print("ERROR: Could not open file. " + fname)
 
         return F
 
@@ -248,7 +249,7 @@ class Dump(object):
         elif self.param['prk'] == 8:
             ntype = 'float64'
         else:
-            print 'prk number {0} not understood!'.format(self.param['prk'])
+            print('prk number {0} not understood!'.format(self.param['prk']))
             raise Exception("Unknown Param Entry")
 
         self._part_dtype = np.dtype([('x' , ntype), 
@@ -363,7 +364,7 @@ class Dump(object):
                 #           pes[sp][n]['y'].min(),pes[sp][n]['y'].max(),
                 #           pes[sp][n]['z'].min(),pes[sp][n]['z'].max()]
 
-                #    print '[%2.3f, %2.3f, %2.3f, %2.3f, %2.3f, %2.3f]'%tuple(lpe)
+                #    print('[%2.3f, %2.3f, %2.3f, %2.3f, %2.3f, %2.3f]'%tuple(lpe))
         return pes
 
     def _skip_parts(self,F):
@@ -381,7 +382,7 @@ class Dump(object):
             # Special case: the number of parts is evenly divisalbe by 
             # bufsize. so we will return the entire last buffer
             num_parts_last_buf = self.bufsize
-            print 'It is pretty unlikly that we will be here!'
+            print('It is pretty unlikly that we will be here!')
 
         # Explination of skip size:
         #   x,y,z,vx,vy,vz *prk* particles on a buffer 
@@ -495,15 +496,15 @@ class Dump(object):
 
     def _r0_on_dump_consistency_check(self,r0):
 
-        print 'x = {0}, y = {1},  z = {2} '.format(*r0)
+        print('x = {0}, y = {1},  z = {2} '.format(*r0))
 
         p0 = self._location_to_proc(*r0)
 
-        print 'px = {0}, py = {1},  pz = {2} '.format(*p0)
+        print('px = {0}, py = {1},  pz = {2} '.format(*p0))
 
         N,R = self._proc_to_dumpindex(*p0)
 
-        print 'N = {0}, R = {1}'.format(N,R)
+        print('N = {0}, R = {1}'.format(N,R))
 
         try:
             foo = self.read_particles(N)[1]['i'][R]

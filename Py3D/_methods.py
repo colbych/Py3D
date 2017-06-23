@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import numpy as np
 
@@ -87,9 +88,9 @@ def interp_field(fld, r0, sim_lens):
 
     for w in wl:
         if w < 0.:
-            print 'C'*80
-            print 'Negetive interp weight'
-            print 'C'*80
+            print('C'*80)
+            print('Negetive interp weight')
+            print('C'*80)
 
     if len(np.shape(fld)) == 2:
         return (1.-wl[0])*(1.-wl[1])*fld[lp[0],  lp[1] ]+\

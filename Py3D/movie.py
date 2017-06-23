@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import pdb
 import glob
@@ -108,11 +109,11 @@ class Movie(object):
 #        return_dict = {}
 #        for cosa in var_arr:
 #            if (cosa not in self.movie_arr):
-#                print 'Varable %s not found in movie_arr. Nothing was loaded!'%cosa
+#                print('Varable %s not found in movie_arr. Nothing was loaded!'%cosa)
 #                cosa = raw_input('Please Enter a Varible: ')
 #            if (cosa not in self.movie_arr):
-#                print 'Varable %s not found in movie_arr. Nothing was loaded!'%cosa
-#                print 'You dont get a second try!'
+#                print('Varable %s not found in movie_arr. Nothing was loaded!'%cosa)
+#                print('You dont get a second try!')
 #                return -1
 #
 #            if time is None:
@@ -133,7 +134,7 @@ class Movie(object):
 #                if -1 < chose < self.num_of_times:
 #                    pass
 #                else:
-#                    print 'Time %i is out of time range [%i - %i]'\
+#                    print('Time %i is out of time range [%i - %i]'\)
 #                          %(chose,0,self.num_of_times-1)
 #                    return None
 #
@@ -150,7 +151,7 @@ class Movie(object):
         
 
         fname = self.path + self._name_sty.format(var,self.num)
-        print "Loading {0}".format(fname)
+        print("Loading {0}".format(fname))
 
         # It seems that Marc Swisdak hates us and wants to be unhappy because 
         # the byte data is unsigned and the doulbe byte is signed so that is 
@@ -215,11 +216,11 @@ class Movie(object):
         fname = self.path + self._name_sty.format('log', self.num)
 
         if 'four_byte' in self.param:
-            print 'Four Byte data, no log file to load.'
+            print('Four Byte data, no log file to load.')
             return None
 
         else:
-            print "Loading {0}".format(fname)
+            print("Loading {0}".format(fname))
             clims = np.loadtxt(fname)
         
             if len(clims)%len(self.movie_vars) != 0:
@@ -232,7 +233,7 @@ class Movie(object):
         
             return log
         # usefull use later
-        #print "movie.log '%s' has %i time slices"%(fname,self.num_of_times)
+        #print("movie.log '%s' has %i time slices"%(fname,self.num_of_times))
 
 # STRUCTURE OF movie_log_dict{}
 #   movie_log_dict is a dictionary of all the of the varibles that could be read in a movie file
@@ -270,7 +271,7 @@ class Movie(object):
 
         c = 0
         while not choices and c < attempt_tol:
-            print '='*20 + ' No movie files found ' + '='*20
+            print('='*20 + ' No movie files found ' + '='*20)
             path = os.path.abspath(raw_input('Please Enter Path: '))
             choices = glob.glob(path + self._name_sty.format('log', '*'))
             c =+ 1
@@ -366,7 +367,7 @@ class Movie(object):
                       '\tI dont care, Im a computer not a cop'\
                       '='*80
 
-            print err_msg
+            print(err_msg)
             raise NotImplementedError()
 
 ################################################################################

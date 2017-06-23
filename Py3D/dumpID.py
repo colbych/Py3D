@@ -6,17 +6,16 @@
 #                                                                     #
 #                                                                     #
 #######################################################################
-
-
+from __future__ import print_function
 import os
 import sys
 import pdb
 import warnings
 import numpy as np
-from dump import Dump
-from _methods import load_param
-from _methods import interp_field
-from _methods import _num_to_ext
+from .dump import Dump
+from ._methods import load_param
+from ._methods import interp_field
+from ._methods import _num_to_ext
 
 class DumpID(object):
     """
@@ -72,16 +71,16 @@ class DumpID(object):
         if par:
             if self._is_2D():
                 if 'fields' not in self.__dict__:
-                    print 'Reading Fields...'
+                    print('Reading Fields...')
                     self.fields = self.read_fields()
             else:
                 if 'fields' not in self.__dict__:
-                    print 'Reading Fields...'
+                    print('Reading Fields...')
                     self.fields = self._get_fld_index_in_zplane(r0[2],dx0[2])
 
                 elif r0[2] - dx0[2]/2. > self.fields['zz'][0] and \
                      r0[2] + dx0[2]/2. < self.fields['zz'][-1]:
-                    print 'Reading Fields...'
+                    print('Reading Fields...')
                     self.fields = self._get_fld_index_in_zplane(r0[2],dx0[2])
 
         dump_and_index = self._get_procs_in_box(r0[0],dx0[0],
@@ -89,7 +88,7 @@ class DumpID(object):
                                                 r0[2],dx0[2])
 
         for d in dump_and_index:
-            print 'Reading Parts from p3d-{0}.{1}...'.format(d,self.dump.num)
+            print('Reading Parts from p3d-{0}.{1}...'.format(d,self.dump.num))
             data = self.dump.read_particles(d,wanted_procs=dump_and_index[d],
                                             tags=tags)
 
@@ -101,7 +100,7 @@ class DumpID(object):
 
         for sp in parts:
             for c,p in enumerate(parts[sp]):
-                print '  Triming {0} from {1}...'.format(sp,c)
+                print('  Triming {0} from {1}...'.format(sp,c))
                 parts[sp][c] = self._trim_parts(p, r0, dx0)
 
             parts[sp] = np.hstack(parts[sp])
@@ -278,14 +277,14 @@ class DumpID(object):
                 r0_rng[c] = np.hstack((r0_rng[c],r0[c] + dx[c]/2.))
 
 
-        #print  'r0_rng = ',r0_rng
+        #print( 'r0_rng = ',r0_rng)
         p0_rng = []
         for x in r0_rng[0]:
             for y in r0_rng[1]:
                 for z in r0_rng[2]:
                     p0_rng.append(self._r0_to_proc(x,y,z))
 
-        print  p0_rng
+        print( p0_rng)
         p0_rng = set(p0_rng) #This removes duplicates
 
         di_dict = {}
@@ -319,10 +318,10 @@ class DumpID(object):
             ind = 1
         else:
             if z0 < 0.:
-                print err_msg.format('Z',z0,lz,0.)
+                print(err_msg.format('Z',z0,lz,0.))
                 ind = 1
             elif z0 >= lz:
-                print err_msg.format('Z',z0,lz,lz)
+                print(err_msg.format('Z',z0,lz,lz))
                 ind = self.param['nchannels']
             else:
                 ind = (int(np.floor(z0/dz)))//idz + 1
@@ -341,19 +340,19 @@ class DumpID(object):
                   'Setting {0} = {3}'
 
         if x0 < 0.:
-            print err_msg.format('X',x0,lx,0.)
+            print(err_msg.format('X',x0,lx,0.))
             px = 1
         elif x0 > lx:
-            print err_msg.format('X',x0,lx,lx)
+            print(err_msg.format('X',x0,lx,lx))
             px = self.param['pex']
         else:
             px = int(np.floor(x0/self.param['lx']*self.param['pex'])) + 1
 
         if y0 < 0.:
-            print err_msg.format('Y',y0,ly,0.)
+            print(err_msg.format('Y',y0,ly,0.))
             py = 1
         elif y0 > ly:
-            print err_msg.format('Y',y0,ly,ly)
+            print(err_msg.format('Y',y0,ly,ly))
             py = self.param['pey']
         else:
             py = int(np.floor(y0/self.param['ly']*self.param['pey'])) + 1
@@ -362,10 +361,10 @@ class DumpID(object):
             pz = 1
         else:
             if z0 < 0.:
-                print err_msg.format('Z',z0,lz,0.)
+                print(err_msg.format('Z',z0,lz,0.))
                 pz = 1
             elif z0 > lz:
-                print err_msg.format('Z',z0,lz,lz)
+                print(err_msg.format('Z',z0,lz,lz))
                 pz = self.param['pez']
             else:
                 pz = int(np.floor(z0/self.param['lz']*self.param['pez'])) + 1
@@ -403,12 +402,12 @@ class DumpID(object):
             warnings.warn(warn_msg)
        
         if dump_IO_version == 'V1':
-            #print 'Using IO V1...'
+            #print('Using IO V1...')
             N = (px - 1)%nch + 1
             R = (pz - 1)*(pex/nch)*(pey) + (pex/nch)*(py - 1) + (px - 1)/nch
 
         else: # dump_IO_version == 'V2'
-            #print 'Using IO V2...'
+            #print('Using IO V2...')
             npes_per_dump = pex*pey*pez/nch
 
             pe = (pz - 1)*pex*pey + (py - 1)*pex + (px - 1)

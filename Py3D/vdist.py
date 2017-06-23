@@ -6,6 +6,7 @@
 #                                                                     #
 #                                                                     #
 #######################################################################
+from __future__ import print_function
 import os
 import sys 
 import datetime
@@ -153,7 +154,7 @@ class VDist(object):
         v2 = 1.*pts['v2']
         
         if v0_frame:
-            print 'Warning this might be very slow, but we programed it qucikly!!!'
+            print('Warning this might be very slow, but we programed it qucikly!!!')
             if type(bins) is int:
                 trng = np.linspace(rng[0],rng[1],bins+1)
             else:
@@ -223,17 +224,17 @@ class VDist(object):
         else:
             angle_norm = np.cos(dpmin/180.*np.pi) + \
                         -np.cos(dpmax/180.*np.pi)
-            print 'yes norm'
+            print('yes norm')
             H = (H*eng**2/np.sqrt(eng)).T
             H = H/angle_norm*nparts
             #H = H/angle_norm
             #H = H/angle_norm*nparts
 
-            #print 'No angle norm'
+            #print('No angle norm')
             #H = (H*eng**2/np.sqrt(eng)).T
                 
-        print 20*(str(angle_norm) + ' ')
-        print 
+        print(20*(str(angle_norm) + ' '))
+        print()
         return H, x_edge, y_edge
 
         
@@ -344,8 +345,8 @@ class VDist(object):
         
         self.normie=norm
 
-        print 'norm = ',norm
-        print 'otha = ',abs(1./np.tan((pa-dpa/2.)/180.*np.pi) - 1./np.tan((pa+dpa/2.)/180.*np.pi))
+        print('norm = ',norm)
+        print('otha = ',abs(1./np.tan((pa-dpa/2.)/180.*np.pi) - 1./np.tan((pa+dpa/2.)/180.*np.pi)))
 
         #return intcone/norm#*abs(1./np.tan((pa-dpa/2.)/180.*np.pi) - 1./np.tan((pa+dpa/2.)/180.*np.pi))
         return intcone/intcone.min()#*abs(1./np.tan((pa-dpa/2.)/180.*np.pi) - 1./np.tan((pa+dpa/2.)/180.*np.pi))

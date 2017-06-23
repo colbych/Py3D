@@ -1,3 +1,4 @@
+from __future__ import print_function
 from scipy.ndimage import gaussian_filter as gf
 import numpy as np
 import Py3D
@@ -96,7 +97,7 @@ class PatPlotter(object):
 
         for a,v,l in zip(self.ax, page_vars, var_labels):
 
-            print 'Plotting {}...'.format(v)
+            print('Plotting {}...'.format(v))
             vrs = gf(self.d[v], sigma=self.sig)
             pcm += [Py3D.sub.ims(self.d, vrs, ax=a, no_draw=1, **kwargs)]
 
@@ -150,7 +151,7 @@ class PatPlotter(object):
 
     def _gen_conts(self, **ctargs): # d should containe psi
         d = self.d
-        print 'Generating Contours...'
+        print('Generating Contours...')
         import matplotlib.pyplot as plt
         plt.ioff()
         _f,a = plt.subplots(1,1)
@@ -333,7 +334,7 @@ class PatPlotter(object):
 
     def savefig(self, ext='png', dpi=2800):
         fname = '{:03d}_patplots_save.{}'.format(self.page_counter, ext)
-        print 'Saving {}...'.format(fname)
+        print('Saving {}...'.format(fname))
         self.fig.tight_layout()
         self.fig.savefig(fname)
         self._created_files += [fname]
@@ -343,10 +344,10 @@ class PatPlotter(object):
     def _make_pdf(self, overwrite=0):
         from subprocess import call
         pdfname = Py3D.sub.date_file_prefix() + 'patplot.pdf'
-        print 'Making the pdf...'
+        print('Making the pdf...')
         call(['convert']+self._created_files+[pdfname])
 
-        print 'Removing files...'
+        print('Removing files...')
         call(['rm','-f'] + self._created_files)
 
         self._created_files = []
