@@ -6,3 +6,4 @@ from .dumpID import DumpID
 from .vdist_plotter import VDistPlotter
 from .sub import *
 from ._methods import load_param
+from .patplots import PatPlotter
