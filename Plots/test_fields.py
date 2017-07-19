@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 dx = .05
 x = np.arange(256)*dx + dx/2.
+y = x
 lx = x[-1] + x[0]
 
 yy,xx = np.meshgrid(x,x)
