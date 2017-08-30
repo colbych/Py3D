@@ -41,7 +41,10 @@ class Movie(object):
                 that you dont want, and the second is the off set
         """
 
-        mvars = tuple(self.movie_vars) if 'all' in mvars else mvars.split()
+        if 'all' in mvars:
+            mvars = tuple(self.movie_vars) 
+        elif type(mvars) is str:
+            mvars.split()
         
         def time_not_in_file(t):
             try:
