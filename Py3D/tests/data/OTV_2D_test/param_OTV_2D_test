@@ -1,0 +1,118 @@
+! Precision of Real Numbers
+! default:
+#define drk 8
+! Particles:
+#define prk 4
+
+! box dimensions
+! processors in each space directions
+#define pex 4
+#define pey 4
+#define pez 1
+! grid points per processor (power of two in each direction highly recommended)
+! nz must be power of two, nx and should be powers of two for multigrid
+! if nz=1 set pez=1 (2D case)
+#define nx 32
+#define ny 32
+#define nz 1 
+! box dimensions
+#define lx 1.28    
+#define ly 1.28
+#define lz 1.0
+
+! physical and numerical parameters
+#define c_2 400.0
+#define m_e 0.04
+#define dt 0.0015
+#define substeps 4
+#define boundary_condition periodic
+#define diagout 0.2
+!#define subtract_average_rho
+!#define relativistic
+
+! movie diagnostics
+#define movie_header "movie_pic3.0.h"
+!#define double_precision
+!#define double_byte
+!#define four_byte
+#define n_movieout 10
+
+! other definitions
+#define head 'p3d'
+#define bufsize 20000
+#define maxparticles 10000000
+#define nchannels pex
+#define maxruntime 5000
+#define USE_IO_V2
+
+! initialization
+#define init_scheme initOTV
+#define ppg 25
+#define T_e 0.30
+#define T_i 0.30 
+#define bpert 0.2
+#define n_0 1.0
+#define npert 0.5
+!#define alt_initial_current
+!#define smooth_sheet
+#define b0x 0.00000
+#define b0y 0.00000 
+#define b0z 1.00000
+!#define n_frac 0.
+#define v_waveadd 0.0
+! Default value for randseedadd is 54321
+#define RANDSEEDADD 54321
+#define vpert 0.2
+
+! Output distribution functions
+!#define outputdist   
+!   Define "outputdist" to output distribution functions.
+!   Also, you must choose an output movie header file which can
+!   output the distribution functions. 
+!   (currently movie2dd.h is the only one).
+!
+! Velocity space dimensions for distribution function output
+#define nvxi 101
+#define nvxe 101
+#define vxmaxi 2.0
+#define vxmaxe 40.
+! nvx = number of grid points in velocity space
+! vxmax = maximum velocity binned. Note that bins will run from 
+!         -vxmax to vxmax.
+! dvx=2*vxmax/(nvx-1)  
+! if you want v=0 to be at a specific grid point in velocity space,
+!    make sure to set nvx to be odd.
+
+! multigrid parameters
+#define nu1 4
+#define nu2 100
+#define nu3 100
+#define maxiter 2000
+#define eps 5e-8
+#define norm_res
+!#define mgverbose
+#define mgverbose2
+#define alt_restrict_prolong
+#define skip_poisson 10
+#define coarsegrid_sor
+#define miniter 4
+#define JACOBI
+!#define GS_RB
+!#define WCYCLE
+
+! domain for post processing
+#define pexv 1
+#define peyv 1
+#define pezv 1
+#define nxv 256
+#define nyv 256
+#define nzv 256
+
+! Driving parameters
+!#define DRIVE_B
+!#define alpha_drb 0.05
+!#define DRIVE_V
+!#define alpha_drv 0.05
+!#define DRIVE_TGV
+!#define amp_drv 0.5
+
