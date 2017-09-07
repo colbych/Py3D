@@ -14,10 +14,9 @@ class Movie(object):
                  path='./'):
         """ Initlize a movie object
         """
-        self._name_sty  = '/movie.{0}.{1}'
+        self._name_sty  = 'movie.{0}.{1}'
         self.path       = self._get_movie_path(path)
-        if param_file is not None: param_file = self.path + '/' + param_file
-        self.param      = load_param(param_file)
+        self.param      = load_param(param_file, path=self.path)
         self.num        = self._get_movie_num(num)
         self.movie_vars = self._get_movie_vars()
         self.log        = self._load_log()
@@ -152,7 +151,7 @@ class Movie(object):
                        self.param['pex']*self.param['nx'])
         
 
-        fname = self.path + self._name_sty.format(var,self.num)
+        fname = os.path.join(self.path,  self._name_sty.format(var,self.num))
         print "Loading {0}".format(fname)
 
         # It seems that Marc Swisdak hates us and wants to be unhappy because 
@@ -215,7 +214,7 @@ class Movie(object):
             It creates a dictionary
         """
 
-        fname = self.path + self._name_sty.format('log', self.num)
+        fname = os.path.join(self.path, self._name_sty.format('log', self.num))
 
         if 'four_byte' in self.param:
             print 'Four Byte data, no log file to load.'
@@ -255,7 +254,8 @@ class Movie(object):
                      self.param['nz']*self.param['pez']
             for v in self.movie_vars:
                 try:
-                    fname = self.path + self._name_sty.format(v, self.num)
+                    fname = os.path.join(self.path, 
+                                         self._name_sty.format(v, self.num))
                     ntimes = os.path.getsize(fname)/4/ngrids
                     return ntimes
                 except OSError:
@@ -269,14 +269,17 @@ class Movie(object):
 
         attempt_tol = 5
         path = os.path.abspath(path)
-        choices = glob.glob(path + self._name_sty.format('log', '*'))
+        #choices = glob.glob(path + self._name_sty.format('log', '*'))
+        choices = glob.glob(os.path.join(path, 
+                  self._name_sty.format('log', '*')))
 
         c = 0
         while not choices and c < attempt_tol:
             print '='*20 + ' No movie files found ' + '='*20
             path = os.path.abspath(raw_input('Please Enter Path: '))
-            choices = glob.glob(path + self._name_sty.format('log', '*'))
-            c =+ 1
+            choices = glob.glob(os.path.join(path, 
+                      self._name_sty.format('log', '*')))
+            c += 1
 
         assert choices, 'No movie log files found!' 
 
@@ -285,7 +288,8 @@ class Movie(object):
 
     def _get_movie_num(self,num):
 
-        choices = glob.glob(self.path + self._name_sty.format('log', '*'))
+        choices = glob.glob(os.path.join(self.path, 
+                                         self._name_sty.format('log', '*')))
         choices = [k[-3:] for k in choices]
 
         num = _num_to_ext(num)
@@ -410,29 +414,11 @@ class UnfinishedMovie(Movie):
     def __init__(self, param=None, path='./'):
         """ Initlize a movie object
         """
-        self._name_sty  = '/{0}'
+        self._name_sty  = '{0}'
         self.path       = path
-        self.param      = load_param(param)
+        self.param      = load_param(param,path=path)
         self.num        = '999'
         self.movie_vars = self._get_movie_vars()
         self.log        = self._load_log()
         self.ntimes     = self._get_ntimes()
 
-
-# Is this nothing? I think this is garbage right now and should be cleaned up
-def load_movie(mvars=None, time=None, movie_num=None):
-    param = glob.glob('./param*')
-
-    M = Movie(param=param, num=movie_num)
-
-    if time is None:
-        get_time_msg = 'There are {0} times in movie number {1}. \n' +\
-                       'Please enter the time: '
-
-        get_time_msg = get_time_msg.format(M.ntimes, M.num)
-
-        time, attempt_tol, crt = -1,5,0
-        while time not in range(M.ntimes) and ctr < attempt_tol:
-            time = raw_input(get_time_msg)
-            ctr =+ 1
-    #return 

@@ -38,9 +38,7 @@ class Dump(object):
         """
 
         self._set_dump_path(path)
-        if param_file is not None:
-            param_file = self.path+'/'+param_file
-        self.param = load_param(param_file)
+        self.param = load_param(param_file, path)
         self.set_dump_num(num)
         self._set_part_dtype()
         self._tags = False
@@ -54,7 +52,7 @@ class Dump(object):
 
     def set_dump_num(self,num):
 
-        choices = glob.glob(self.path+'/p3d-001.*')
+        choices = glob.glob(os.path.join(self.path, '/p3d-001.*'))
         choices = [k[-3:] for k in choices]
 
         num = _num_to_ext(num)
@@ -206,7 +204,7 @@ class Dump(object):
 
     def _set_dump_path(self, path):
         def get_choices(path):
-            choices = glob.glob(path+'/p3d-001.*')
+            choices = glob.glob(os.join(path, '/p3d-001.*'))
             choices = [k[-3:] for k in choices]
             return choices
 
@@ -231,7 +229,7 @@ class Dump(object):
 
     def _open_dump_file(self,index):
 
-        fname = self.path + '/p3d-{0}.{1}'.format(index,self.num)
+        fname = os.path.join(self.path, '/p3d-{0}.{1}'.format(index,self.num))
 
         try:
             F = open(fname, "rb")
