@@ -108,7 +108,7 @@ def ims(d,
         cbar=None,
         cont=None,
         no_draw=None,
-        ctargs={},
+        ctargs=None,
         **kwargs):
     """
     A wrapper function for imshow to do most tedious stuff for P3D simulations
@@ -152,7 +152,6 @@ def ims(d,
 
     plt_val = plt_val.T
 
-
     xlab = r'$X (d_i)$'
     ylab = r'$Y (d_i)$'
 
@@ -162,6 +161,7 @@ def ims(d,
            d['yy'][0],
            d['yy'][-1]]
 
+    if ctargs is None: ctargs = {}
     return_tuple = _ims(d,plt_val,xlab,ylab,ext,ax,extent,cbar,
                          cont,no_draw,ctargs,**kwargs)
 
@@ -183,7 +183,6 @@ def _ims(d,
          no_draw,
          ctargs,
          **kwargs):
-
 
     if kwargs.has_key('cmap'): cmap=kwargs.pop('cmap')
     else:                      cmap='PuOr'
@@ -218,8 +217,6 @@ def _ims(d,
 
         return_tup += (cax,)
 
-    print cont
-    print ctargs
     if cont or ctargs:
         if 'psi' in d:
             psi = d['psi']
@@ -326,9 +323,9 @@ def var_at(fdic, key, r0, ordflg='idl'):
 #======================================================
 
 def load_movie(num=None,
-               param=None,
+               param_file=None,
                path='./',
-               vrs='all',
+               mvars='all',
                time=None,
                slc=None,
                name_style='p3d'):
@@ -337,11 +334,11 @@ def load_movie(num=None,
         ----------
         num : int
             Moving number to load. If None it will ask
-        param : str
+        param_file : str
             name of param file, If None it will ask.
         path : str
             where movie files are. (Assumese in local dir)
-        vrs (vars) : str or array of strs
+        mvars (vars) : str or array of strs
             what varibles to load ['bx', 'by', 'bz', ..],
             Assumes that you want to load 'all'
         slc (slice) : slice
@@ -357,11 +354,10 @@ def load_movie(num=None,
     """
 
     if name_style is 'p3d':
-        return Movie(num,param,path).get_fields(vrs,time,slc)
+        return Movie(num, param_file, path).get_fields(mvars, time, slc)
     elif name_style.lower() in ['tulasi', 'unfinished'] :
         from Py3D.movie import UnfinishedMovie
-        return UnfinishedMovie(param,path).get_fields(vrs,time,slc)
-
+        return UnfinishedMovie(param_file, path).get_fields(mvars, time, slc)
 
 
 #======================================================
