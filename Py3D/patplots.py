@@ -8,13 +8,18 @@ class PatPlotter(object):
     """ A class to load and plot a simulation in the style of kittypat
     """
 
-    def __init__(self, **mvargs):
+    def __init__(self, name_style='p3d', **mvargs):
         """ Make a set of plots like kittypat used to
 
         :param mvargs: Keyword arguments inteneded to be passed to Py3D.Movie
         :type mvargs: kwargs or dict
         """
-        self._M = Py3D.Movie(**mvargs)
+
+        if name_style == 'p3d':
+            self._M = Py3D.Movie(**mvargs)
+        elif name_style in 'unfinished tulasi'.split():
+            self._M = Py3D.movie.UnfinishedMovie(**mvargs)
+
         self.ctrs = []
 
 
@@ -37,13 +42,15 @@ class PatPlotter(object):
                    slc=None,
                    xy_lims=None,
                    cut_dir='y',
+                   cut_locs=None,
+                   cont_override=None,
                    **kwargs):
 
         if slc is not None:
             slc = slc[::-1] 
 
         # These will need to be arguments
-        self.sig = 3
+        self.sig = 0
         #self.xy_lims = [[4.5, 6.], [7.3, 8.]]
 
         # Commented out
@@ -53,7 +60,7 @@ class PatPlotter(object):
         self._created_files = []
 
         # This is gonna need a whole thing
-        psi0, levels = self._calc_psi0()
+        psi0, levels = self._calc_psi0(cont_override)
         self.psi0 = psi0
         
         ctargs = dict(linewidths=.5, levels=levels)
@@ -65,7 +72,7 @@ class PatPlotter(object):
             prop={'size':6}, bbox_to_anchor=(0., 1.02, 1., .102))
         
         # This needs to be automated
-        _x,_i = self._gen_xcuts()
+        _x,_i = self._gen_xcuts(cut_locs)
         self.xpcs = _x
         self.ipcs = _i
 
@@ -134,13 +141,17 @@ class PatPlotter(object):
 
 #========================================
 
-    def _gen_xcuts(self):
+    def _gen_xcuts(self, cut_locs):
         ll = (self.d[2*self._not_cut_dir][-1] +
               self.d[2*self._not_cut_dir][0])
+        
+        if cut_locs is None:
+            ncuts = 10
+            #xpcs = np.arange(4.6, 6., .1)
+            xpcs = np.arange(10)/10.*ll
 
-        ncuts = 10
-        #xpcs = np.arange(4.6, 6., .1)
-        xpcs = np.arange(10)/10.*ll
+        else:
+            xpcs = cut_locs
 
         ipcs = [abs(self.d['xx'] - k).argmin() for k in xpcs]
 
@@ -153,7 +164,7 @@ class PatPlotter(object):
         print 'Generating Contours...'
         import matplotlib.pyplot as plt
         plt.ioff()
-        _f,a = plt.subplots(1,1)
+        _f,a = plt.subplots(1,1,num=1)
 
         ctargs['colors'] = ctargs.get('colors','k')
         ctargs['linestyles'] = ctargs.get('linestyles', 'solid')
@@ -165,6 +176,7 @@ class PatPlotter(object):
             for k in c.get_paths():
                 ctrs.append(k.vertices.T)
         
+        _f.clf()
         del(_f)
 
         return ctrs
@@ -233,34 +245,32 @@ class PatPlotter(object):
 
 #========================================
 
-    def _calc_psi0(self):
-        mp = self._calc_midplane()
-        xrng = np.arange(len(mp))
+    def _calc_psi0(self, cont_override):
+        if cont_override is None:
+            mp = self._calc_midplane()
+            xrng = np.arange(len(mp))
 
-        #bs = (self.d['bx'][:,mp]**2 + self.d['by'][:,mp]**2)
+            if self.d['bx'][0,-1] - self.d['bx'][0,0] > 0.:
+                arg_psi0 = self.d['psi'][xrng, mp].argmax()
+            else:
+                arg_psi0 = self.d['psi'][xrng, mp].argmin()
+            
+            psi0 = self.d['psi'][xrng[arg_psi0], mp[arg_psi0]]
+            npsi = 10
+            dpsi = np.abs(psi0 - self.d['psi'][arg_psi0, 4])/(npsi/2.)
 
-        #argx = [self.d['psi'][np.arange(len(mp)), mp].argmax(),
-        #        self.d['psi'][np.arange(len(mp)), mp].argmin()]
-        
-
-
-        # This is an ok way to do this, but it might be prone to mistakes
-        #pdb.set_trace()
-        #arg_psi0 = argx[np.array([bs[ag, mp[ag]] for ag in argx]).argmin()]
-
-        #arg_psi0 = (arg_psi0, mp[arg_psi0])
-
-        if self.d['bx'][0,-1] - self.d['bx'][0,0] > 0.:
-            arg_psi0 = self.d['psi'][xrng, mp].argmax()
+            levels= np.arange(psi0 - dpsi*npsi, psi0 + dpsi*npsi, dpsi)
+       
         else:
-            arg_psi0 = self.d['psi'][xrng, mp].argmin()
-        
-        psi0 = self.d['psi'][xrng[arg_psi0], mp[arg_psi0]]
-        npsi = 10
-        dpsi = np.abs(psi0 - self.d['psi'][arg_psi0, 4])/(npsi/2.)
+            ctovrd_msg = ('If cont_override is not None then it '
+                          'must be (psi0, levels)\n'
+                          'i.e. tuple(float, list (or numpy.array))')
+            assert type(cont_override) is tuple, ctovrd_msg
+            assert type(cont_override[0]) in [float, np.float64], ctovrd_msg
+            assert type(cont_override[1]) in [list,  np.ndarray], ctovrd_msg
 
-        levels= np.arange(psi0 - dpsi*npsi, psi0 + dpsi*npsi, dpsi)
-        
+            psi0, levels = cont_override
+
         return psi0, levels
 
 #========================================
@@ -319,19 +329,20 @@ class PatPlotter(object):
 
     def clean_fig(self):
         import matplotlib.pyplot as plt
-        try:
-            self.fig.clf()
-        except AttributeError:
-            self.fig = plt.figure(1)
+        if not hasattr(self, 'fig'):
+            self.fig = plt.figure(1,dpi=1200)
+
+        self.fig.clf()
 
         self.ax = [self.fig.add_subplot(6,2,1+c) for c in range(12)]
         self.fig.set_size_inches(.75*8.5, .75*11.)
+        self.fig.subplots_adjust(left=.1,right=.9,bottom=.1,top=.9)
 
         self.page_counter += 1
 
 #========================================
 
-    def savefig(self, ext='png', dpi=2800):
+    def savefig(self, ext='png', dpi=1200):
         fname = '{:03d}_patplots_save.{}'.format(self.page_counter, ext)
         print 'Saving {}...'.format(fname)
         self.fig.tight_layout()
@@ -346,10 +357,12 @@ class PatPlotter(object):
         print 'Making the pdf...'
         call(['convert']+self._created_files+[pdfname])
 
+        # Lets clean some stuff up for reuse sake
         print 'Removing files...'
         call(['rm','-f'] + self._created_files)
 
         self._created_files = []
+        delattr(self, 'fig')
 
 #========================================
 

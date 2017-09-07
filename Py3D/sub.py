@@ -490,15 +490,14 @@ def check_energy_conservation(mov_num=0,
 
 #======================================================
 
-def multi_color(slice=None, draw=False, **movkwargs):
-
+def multi_color(slc=None, draw=False, **movkwargs):
     """ A function to display all of the simulation field outputs at once
         for a number of different times.
 
         Parameters
         ----------
-        slice : None || (axis, offset)
-            Only relevent for 3D data. Which slice (plane) to plot.
+        slc : None || (axis, offset)
+            Only relevent for 3D data. Which slc (plane) to plot.
             axis : int 0,1,2
                 Which plane do you want to see? 
                 0 -> (y,z), 1 -> (x,z), 2 -< (x,y)
@@ -516,17 +515,17 @@ def multi_color(slice=None, draw=False, **movkwargs):
     M, time, fig, istate = _movie_start_plot(**movkwargs)
 
     # This is going to sound crazy but there seems to be a BIG time
-    # difference in loading the movie files depending on if the slice
+    # difference in loading the movie files depending on if the slc
     # is a list or a tuple (like a factor of 10 faster for tuple)
-    if slice is None: 
-        slice=(2,0)
+    if slc is None: 
+        slc=(2,0)
     else:
         xyz = M._get_xyz_vectors()
-        k = 2*('xyz'[slice[0]])
-        s2 = np.argmin(np.abs(xyz[k] - slice[1]))
-        slice = (slice[0], s2)
+        k = 2*('xyz'[slc[0]])
+        s2 = np.argmin(np.abs(xyz[k] - slc[1]))
+        slc = (slc[0], s2)
 
-    print 'Slice = ',slice
+    print 'Slice = ',slc
 
     for t in time:
 
@@ -537,13 +536,13 @@ def multi_color(slice=None, draw=False, **movkwargs):
         for a,k in zip(ax,M.movie_vars):
 
             print 'loading ',k
-            d = M.get_fields(k, time=t, slc=slice)
+            d = M.get_fields(k, time=t, slc=slc)
 
             print 'plotting ',k
             ttl = k
             if M.param['pez']*M.param['nz'] > 1:
-                im.append(ims3D(d,k,a, no_draw=not draw, slice=slice))
-                ttl+= ', {}={}'.format('xyz'[slice[0]], slice[1])
+                im.append(ims3D(d,k,a, no_draw=not draw, slice=slc))
+                ttl+= ', {}={}'.format('xyz'[slc[0]], slc[1])
                 a.set_title(ttl,size=8)
 
             else:
