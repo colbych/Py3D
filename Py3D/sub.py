@@ -490,10 +490,10 @@ def check_energy_conservation(mov_num=0,
 
 #======================================================
 
-def multi_color(slice=None, draw=False):
+def multi_color(slice=None, draw=False, **movkwargs):
 
-    """ A method for Mike!. It coppies his multi gray
-        IDL code.
+    """ A function to display all of the simulation field outputs at once
+        for a number of different times.
 
         Parameters
         ----------
@@ -508,8 +508,12 @@ def multi_color(slice=None, draw=False):
         draw : bool
             if True it will plot and draw every subplot in real time
             Note: if set to True it is VERY slow
+
+        movkwargs : kwargs/dict
+            key word arguments for the Movie class
+            
     """
-    M,t,fig,istate = _movie_start_plot()
+    M, time, fig, istate = _movie_start_plot(**movkwargs)
 
     # This is going to sound crazy but there seems to be a BIG time
     # difference in loading the movie files depending on if the slice
@@ -522,28 +526,31 @@ def multi_color(slice=None, draw=False):
         s2 = np.argmin(np.abs(xyz[k] - slice[1]))
         slice = (slice[0], s2)
 
-
     print 'Slice = ',slice
-    print 'Making subplots...'
-    ax = [fig.add_subplot(6,5,c+1) for c in range(6*5)]
-    im = []
-    for a,k in zip(ax,M.movie_vars):
 
-        print 'loading ',k
-        d = M.get_fields(k, time=t, slice=slice)
+    for t in time:
 
-        print 'plotting ',k
-        ttl = k
-        if M.param['pez']*M.param['nz'] > 1:
-            im.append(ims3D(d,k,a, no_draw=not draw, slice=slice))
-            ttl+= ', {}={}'.format('xyz'[slice[0]], slice[1])
-            a.set_title(ttl,size=8)
+        fig.clf()
+        print 'Making subplots...'
+        ax = [fig.add_subplot(6,5,c+1) for c in range(6*5)]
+        im = []
+        for a,k in zip(ax,M.movie_vars):
 
-        else:
-            im.append(ims(d,k,a, no_draw=not draw))
-            a.set_title(ttl,size=8)
-    
-    _movie_end_plot(istate)
+            print 'loading ',k
+            d = M.get_fields(k, time=t, slice=slice)
+
+            print 'plotting ',k
+            ttl = k
+            if M.param['pez']*M.param['nz'] > 1:
+                im.append(ims3D(d,k,a, no_draw=not draw, slice=slice))
+                ttl+= ', {}={}'.format('xyz'[slice[0]], slice[1])
+                a.set_title(ttl,size=8)
+
+            else:
+                im.append(ims(d,k,a, no_draw=not draw))
+                a.set_title(ttl,size=8)
+        
+        _movie_end_plot(istate)
     return ax,im
 
 #======================================================
@@ -613,14 +620,21 @@ def three_plane(v, r0=[0., 0., 0.], **imsargs):
 
 #======================================================
 
-def _movie_start_plot():
-    M = Movie()
-    t = raw_input('Enter time between {}-{}: '.format(0,M.ntimes-1))
-    t = int(t)
+def _movie_start_plot(**movargs):
+    M = Movie(**movargs)
+    tstr = ("Enter either a single time or in range format "
+           "(start, stop, skip) between {}-{} : ")
+    t = raw_input(tstr.format(0,M.ntimes-1))
+
+    try:
+        t = [int(t))]
+    except TypeError:
+        t = [int(c) for c in t.split(',')]
+        t = range(*t)
 
     print 'Getting Fgiure...'
     fig = plt.gcf()
-    fig.clf()
+    #fig.clf()
     istate = plt.isinteractive
     plt.ioff()
 
