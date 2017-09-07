@@ -292,7 +292,7 @@ class Movie(object):
 
         if num not in choices:
             _ =  'Select from the following possible movie numbers: '\
-                 '\n{0} '.format(choices)
+                 '\n{0} '.format([int(c) for c in choices])
             num = int(raw_input(_))
  
         return _num_to_ext(num)

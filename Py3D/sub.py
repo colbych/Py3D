@@ -87,10 +87,10 @@ def ims3D(d,
         xlab = r'$X (d_i)$'; ylab = r'$Y (d_i)$'
         ext = [d['xx'][0], d['xx'][-1], d['yy'][0], d['yy'][-1]]
     else:
-        err_msg = 'slice[0] {} not understood! must be value between 0-2\n'\
-                  'where 0 -> Y,Z plane\n'\
-                  '      1 -> Z,x plane\n'\
-                  'and   2 -> X,Y plane'
+        err_msg = ('slice[0] {} not understood! must be value between 0-2\n'
+                  'where 0 -> Y,Z plane\n'
+                  '      1 -> Z,x plane\n'
+                  'and   2 -> X,Y plane')
         print err_msg.format(slice[0])
         raise IOError()
     
@@ -113,18 +113,29 @@ def ims(d,
     """
     A wrapper function for imshow to do most tedious stuff for P3D simulations
     
-    Args:
-        d (dict): A dictionary with relevent simualtion information.
+    Parameters
+    ==========
+        d : dict
+            A dictionary with relevent simualtion information.
             d must contain xx and yy so it will know the dimensions to plot
-        k (str or np.array): Either a str of a varible contained within d or 
-        a 2D numpy array of size (len(d['xx']), len(d['yy'])) that will be 
-        plotted.
-        cbar (bool): If true, then auto generate a colorbar
-        cont (bool): If true, then auto generate contours
-        no_draw (bool): If ture, do not call matplotlib.pylab.draw(), can
-            speed up the plotting process
-        ctargs (dict): A dictonary to pass extra argumens to the contour
-            call, so you can add more lines or set the elvels explicitly.
+
+        k : str or np.array
+            Either a str of a varible contained within d or a 2D numpy array 
+            of size (len(d['xx']), len(d['yy'])) that will be plotted.
+
+        cbar : bool
+            If true, then auto generate a colorbar
+
+        cont : bool
+            If true, then auto generate contours
+
+        no_draw :bool
+            If ture, do not call matplotlib.pylab.draw(), can speed up the 
+            plotting process
+
+        ctargs : dict
+            A dictonary to pass extra argumens to the contour call, 
+            so you can add more lines or set the elvels explicitly.
 
     """
 
@@ -511,8 +522,13 @@ def multi_color(slc=None, draw=False, **movkwargs):
         movkwargs : kwargs/dict
             key word arguments for the Movie class
             
+        Returns
+        -------
+        ax : list of matplotlib.axes
+        im : list of matplotlib.image.AxesImage
     """
     M, time, fig, istate = _movie_start_plot(**movkwargs)
+    called_tight_layout = False
 
     # This is going to sound crazy but there seems to be a BIG time
     # difference in loading the movie files depending on if the slc
@@ -525,10 +541,7 @@ def multi_color(slc=None, draw=False, **movkwargs):
         s2 = np.argmin(np.abs(xyz[k] - slc[1]))
         slc = (slc[0], s2)
 
-    print 'Slice = ',slc
-
     for t in time:
-
         fig.clf()
         print 'Making subplots...'
         ax = [fig.add_subplot(6,5,c+1) for c in range(6*5)]
@@ -539,7 +552,9 @@ def multi_color(slc=None, draw=False, **movkwargs):
             d = M.get_fields(k, time=t, slc=slc)
 
             print 'plotting ',k
-            ttl = k
+            ttl = "{}: {:.2f}, {:.2f}"
+            ttl = ttl.format(k, d[k].min(), d[k].max())
+
             if M.param['pez']*M.param['nz'] > 1:
                 im.append(ims3D(d,k,a, no_draw=not draw, slice=slc))
                 ttl+= ', {}={}'.format('xyz'[slc[0]], slc[1])
@@ -548,8 +563,17 @@ def multi_color(slc=None, draw=False, **movkwargs):
             else:
                 im.append(ims(d,k,a, no_draw=not draw))
                 a.set_title(ttl,size=8)
+            a.set_xlabel('')
+            a.set_ylabel('')
         
-        _movie_end_plot(istate)
+        #_movie_end_plot(istate)
+        plt.draw()
+        if not called_tight_layout:
+            plt.tight_layout()
+            called_tight_layout = True
+
+        _ = raw_input('Hit return to see next time.')
+
     return ax,im
 
 #======================================================
@@ -596,6 +620,7 @@ def three_plane(v, r0=[0., 0., 0.], **imsargs):
     _x2 = max([xyz[k][-1] for k in xyz])
     _x1 = min([xyz[k][0]  for k in xyz])
     _x = np.linspace(_x1,_x2,200)
+
     for a,y,x in zip(ax, [0,1,0], [1,2,2]):
         a.plot(0.*_x + r0[0], _x, 'k--')
         a.plot(_x, 0.*_x + r0[1], 'k--')
@@ -627,7 +652,7 @@ def _movie_start_plot(**movargs):
 
     try:
         t = [int(t)]
-    except TypeError:
+    except ValueError:
         t = [int(c) for c in t.split(',')]
         t = range(*t)
 
