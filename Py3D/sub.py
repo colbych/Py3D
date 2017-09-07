@@ -537,7 +537,7 @@ def multi_color(slice=None, draw=False, **movkwargs):
         for a,k in zip(ax,M.movie_vars):
 
             print 'loading ',k
-            d = M.get_fields(k, time=t, slice=slice)
+            d = M.get_fields(k, time=t, slc=slice)
 
             print 'plotting ',k
             ttl = k
@@ -627,7 +627,7 @@ def _movie_start_plot(**movargs):
     t = raw_input(tstr.format(0,M.ntimes-1))
 
     try:
-        t = [int(t))]
+        t = [int(t)]
     except TypeError:
         t = [int(c) for c in t.split(',')]
         t = range(*t)
