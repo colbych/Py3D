@@ -145,8 +145,11 @@ def ims(d,
     else:
         plt.sca(ax)    # Set Current Axis
 
-    if type(k) is str: plt_val = d[k]
-    else               : plt_val = k
+    if type(k) is str: 
+        plt_val = d[k]
+    else: 
+        plt_val = k
+
     plt_val = plt_val.T
 
 
@@ -215,6 +218,8 @@ def _ims(d,
 
         return_tup += (cax,)
 
+    print cont
+    print ctargs
     if cont or ctargs:
         if 'psi' in d:
             psi = d['psi']

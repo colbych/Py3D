@@ -11,6 +11,8 @@ def load_param(param_file=None, path=''):
 
     if param['file'] is None:
         param['file'] = _get_param_file(path)
+    else:
+        param['file'] = os.path.join(path, param['file'])
 
     fname = os.path.abspath(os.path.expandvars(param['file']))
 
