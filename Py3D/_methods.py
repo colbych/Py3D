@@ -44,7 +44,7 @@ def load_param(param_file=None, path=''):
 
 
 def _get_param_file(path=''):
-    fname = raw_input('Please param file: ')
+    fname = raw_input('Please enter param file: ')
     fname = os.path.join(path, fname.strip())
     fname = os.path.abspath(os.path.expandvars(fname))
 
