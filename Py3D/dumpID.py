@@ -16,6 +16,7 @@ import numpy as np
 from dump import Dump
 from _methods import load_param
 from _methods import interp_field
+from _methods import vprint
 from _methods import _num_to_ext
 
 class DumpID(object):
@@ -29,8 +30,10 @@ class DumpID(object):
     def __init__(self, 
                  num=None,
                  param_file=None,
-                 path='./'):
+                 path='./',
+                 verbose=False):
 
+        self._verbose = False
         self.dump = Dump(num, param_file, path)
         self.param = self.dump.param
 
@@ -52,11 +55,14 @@ class DumpID(object):
                         dx=[.5,.5],
                         par=False,
                         species=None,
-                        tags=False):
+                        tags=False,
+                        verbose=False):
         """ Takes a box defined by its center position r and it's
             widths dx and gets the particle data
         """
 
+        if verbose:
+            self._verbose=True
         r0  = [1., 1., .5]
         dx0 = [.5, .5, 1.]
 
@@ -72,16 +78,16 @@ class DumpID(object):
         if par:
             if self._is_2D():
                 if 'fields' not in self.__dict__:
-                    print 'Reading Fields...'
+                    vprint(self, 'Reading Fields...')
                     self.fields = self.read_fields()
             else:
                 if 'fields' not in self.__dict__:
-                    print 'Reading Fields...'
+                    vprint(self, 'Reading Fields...')
                     self.fields = self._get_fld_index_in_zplane(r0[2],dx0[2])
 
                 elif r0[2] - dx0[2]/2. > self.fields['zz'][0] and \
                      r0[2] + dx0[2]/2. < self.fields['zz'][-1]:
-                    print 'Reading Fields...'
+                    vprint(self, 'Reading Fields...')
                     self.fields = self._get_fld_index_in_zplane(r0[2],dx0[2])
 
         dump_and_index = self._get_procs_in_box(r0[0],dx0[0],
@@ -89,7 +95,8 @@ class DumpID(object):
                                                 r0[2],dx0[2])
 
         for d in dump_and_index:
-            print 'Reading Parts from p3d-{0}.{1}...'.format(d,self.dump.num)
+            vprint(self, 'Reading Parts from'
+                         'p3d-{0}.{1}...'.format(d,self.dump.num))
             data = self.dump.read_particles(d,wanted_procs=dump_and_index[d],
                                             tags=tags)
 
@@ -101,7 +108,7 @@ class DumpID(object):
 
         for sp in parts:
             for c,p in enumerate(parts[sp]):
-                print '  Triming {0} from {1}...'.format(sp,c)
+                vprint(self, '  Triming {0} from {1}...'.format(sp,c))
                 parts[sp][c] = self._trim_parts(p, r0, dx0)
 
             parts[sp] = np.hstack(parts[sp])
@@ -285,7 +292,7 @@ class DumpID(object):
                 for z in r0_rng[2]:
                     p0_rng.append(self._r0_to_proc(x,y,z))
 
-        print  p0_rng
+        vprint(self, p0_rng)
         p0_rng = set(p0_rng) #This removes duplicates
 
         di_dict = {}
@@ -417,6 +424,4 @@ class DumpID(object):
             R = pe%npes_per_dump
 
         return _num_to_ext(N),R
-
-
 

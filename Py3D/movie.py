@@ -3,6 +3,7 @@ import pdb
 import glob
 import numpy as np
 from ._methods import load_param
+from ._methods import vprint
 from ._methods import _num_to_ext
 
 class Movie(object):
@@ -11,10 +12,12 @@ class Movie(object):
     def __init__(self,
                  num=None,
                  param_file=None,
-                 path='./'):
+                 path='./',
+                 verbose=False):
         """ Initlize a movie object
         """
         self._name_sty  = 'movie.{0}.{1}'
+        self._verbose   = verbose
         self.path       = self._get_movie_path(path)
         self.param      = load_param(param_file, path=self.path)
         self.num        = self._get_movie_num(num)
@@ -23,7 +26,7 @@ class Movie(object):
         self.ntimes     = self._get_ntimes()
 
 
-    def get_fields(self, mvars, time=None, slc=None):
+    def get_fields(self, mvars, time=None, slc=None, verbose=False):
         """ Loads the field(s) var at for a given time(s)
 
             :param var: A space seperated list of the varibles to load
@@ -38,6 +41,8 @@ class Movie(object):
                 of a 3D movie file (to save time?) the first int it what plane
                 that you dont want, and the second is the off set
         """
+
+        self._verbose = verbose
 
         if 'all' in mvars:
             mvars = tuple(self.movie_vars) 
@@ -152,7 +157,7 @@ class Movie(object):
         
 
         fname = os.path.join(self.path,  self._name_sty.format(var,self.num))
-        print "Loading {0}".format(fname)
+        vprint(self, "Loading {0}".format(fname))
 
         # It seems that Marc Swisdak hates us and wants to be unhappy because 
         # the byte data is unsigned and the doulbe byte is signed so that is 
@@ -217,11 +222,11 @@ class Movie(object):
         fname = os.path.join(self.path, self._name_sty.format('log', self.num))
 
         if 'four_byte' in self.param:
-            print 'Four Byte data, no log file to load.'
+            vprint(self, 'Four Byte data, no log file to load.')
             return None
 
         else:
-            print "Loading {0}".format(fname)
+            vprint(self, "Loading {0}".format(fname))
             clims = np.loadtxt(fname)
         
             if len(clims)%len(self.movie_vars) != 0:

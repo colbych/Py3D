@@ -14,6 +14,7 @@ import glob
 import struct
 import numpy as np
 from _methods import load_param
+from _methods import vprint
 from _methods import _num_to_ext
 
 # Change foo.has_key(bar) to bar in foo 
@@ -33,10 +34,12 @@ class Dump(object):
     def __init__(self, 
                  num=None,
                  param_file=None,
-                 path='./'): 
+                 path='./',
+                 verbose=False): 
         """ Initilazition Routine for dump class 
         """
 
+        self._verbose = False
         self._set_dump_path(path)
         self.param = load_param(param_file, path)
         self.set_dump_num(num)
@@ -52,7 +55,7 @@ class Dump(object):
 
     def set_dump_num(self,num):
 
-        choices = glob.glob(os.path.join(self.path, '/p3d-001.*'))
+        choices = glob.glob(os.path.join(self.path, 'p3d-001.*'))
         choices = [k[-3:] for k in choices]
 
         num = _num_to_ext(num)
@@ -60,7 +63,7 @@ class Dump(object):
         if num not in choices:
             
             _ =  'Select from the following possible dump file numbers:' \
-                 '\n{0} '.format(choices)
+                 '\n{0} '.format([int(cho) for cho in choices])
             num = int(raw_input(_))
  
         self.num = _num_to_ext(num)
@@ -68,10 +71,17 @@ class Dump(object):
         return None
 
  
-    def read_particles(self,index,wanted_procs=None,tags=False):
+    def read_particles(self,
+                       index,
+                       wanted_procs=None,
+                       tags=False,
+                       verbose=False):
         """ #   Method      : read_dump_parts
         """
         
+        if verbose:
+            self._verbose = True
+
         if tags:
             self._tags = True
         else:
@@ -156,7 +166,7 @@ class Dump(object):
         flds = []
         for ind in tuple(index): #This might make things run faster
             ind = _num_to_ext(ind)
-            print 'Loading p3d-{}.{}'.format(ind, self.num)
+            vprint(self, 'Loading p3d-{}.{}'.format(ind, self.num))
             F = self._open_dump_file(ind)
             self._read_header(F)
             flds += [self._pop_fields(F)]
@@ -204,14 +214,14 @@ class Dump(object):
 
     def _set_dump_path(self, path):
         def get_choices(path):
-            choices = glob.glob(os.join(path, '/p3d-001.*'))
+            choices = glob.glob(os.path.join(path, 'p3d-001.*'))
             choices = [k[-3:] for k in choices]
             return choices
 
         attempt_tol = 5
         path = os.path.abspath(path)
         choices =  get_choices(path)
-        print path
+        vprint(self, path)
 
         c = 0
         while not choices and c < attempt_tol:
@@ -229,7 +239,7 @@ class Dump(object):
 
     def _open_dump_file(self,index):
 
-        fname = os.path.join(self.path, '/p3d-{0}.{1}'.format(index,self.num))
+        fname = os.path.join(self.path, 'p3d-{0}.{1}'.format(index,self.num))
 
         try:
             F = open(fname, "rb")
@@ -379,7 +389,7 @@ class Dump(object):
             # Special case: the number of parts is evenly divisalbe by 
             # bufsize. so we will return the entire last buffer
             num_parts_last_buf = self.bufsize
-            print 'It is pretty unlikly that we will be here!'
+            vprint(self, 'It is pretty unlikly that we will be here!')
 
         # Explination of skip size:
         #   x,y,z,vx,vy,vz *prk* particles on a buffer 
@@ -493,15 +503,13 @@ class Dump(object):
 
     def _r0_on_dump_consistency_check(self,r0):
 
-        print 'x = {0}, y = {1},  z = {2} '.format(*r0)
-
+        vprint(self, 'x = {0}, y = {1},  z = {2} '.format(*r0))
         p0 = self._location_to_proc(*r0)
 
-        print 'px = {0}, py = {1},  pz = {2} '.format(*p0)
-
+        vprint(self, 'px = {0}, py = {1},  pz = {2} '.format(*p0))
         N,R = self._proc_to_dumpindex(*p0)
 
-        print 'N = {0}, R = {1}'.format(N,R)
+        vprint(self, 'N = {0}, R = {1}'.format(N,R))
 
         try:
             foo = self.read_particles(N)[1]['i'][R]

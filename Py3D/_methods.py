@@ -117,3 +117,12 @@ def interp_field(fld, r0, sim_lens):
                (wl[0])   *   (wl[1])*   (wl[2])*fld[lp1[0], lp1[1], lp1[2]]
     else:
         raise Exception("Field shape not understood")
+
+
+def vprint(obj, *args):
+    """ Verbose Print
+    """
+    if getattr(obj, '_verbose', False):
+        for arg in args:
+            print arg,
+        print
