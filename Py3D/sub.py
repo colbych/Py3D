@@ -10,7 +10,7 @@ from Py3D.dumpID import DumpID
 __all__ = ['set_local', 'ims', 'find_xpt', 'var_at', 'ims_subplot',
            'load_movie', 'check_energy_conservation', 'multi_color',
            'show_energy', 'calc_psi', 'readsave', 'date_file_prefix',
-           'rs3d', 'rotate_ten']
+           'rs3d', 'rotate_ten', 'load_parts']
 
 #======================================================
 def set_local(d, loc, overwrite=False):
@@ -362,12 +362,21 @@ def load_movie(num=None,
 
 #======================================================
 
-def gen_distro(species,
-               r=[1.,1.],
-               dx=[.5,.5],
+def load_parts(r0=None,
+               dx=None,
                par=False,
-               **vdargs):
-    raise NotImplementedError()
+               **dmpkwargs):
+    if r0 is None:
+        r0 = raw_input('Enter center of box(x0, y0, [z0]):\n> ')
+        r0 = np.array(r0.split(',')).astype(float)
+
+    if dx is None:
+        dx = raw_input('Energy widths of box(dx, dy, [dz]):\n> ')
+        dx = np.array(dx.split(',')).astype(float)
+
+    did = DumpID(**dmpkwargs)
+
+    return did.get_part_in_box(r=r0, dx=dx, par=par)
     
 #======================================================
 
