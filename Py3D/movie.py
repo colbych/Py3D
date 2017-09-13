@@ -13,11 +13,25 @@ class Movie(object):
                  num=None,
                  param_file=None,
                  path='./',
+                 name_style='p3d',
                  verbose=False):
         """ Initlize a movie object
         """
-        self._name_sty  = 'movie.{0}.{1}'
+
         self._verbose   = verbose
+
+        if name_style.lower() is 'p3d':
+            self._std_init(num, param_file, path)
+
+        elif name_style.lower() in ['tulasi', 'unfinished'] :
+            self._tulasi_init(param_file, path)
+
+#======================================================
+
+    def _std_init(self, num, param_file, path):
+        """ Initlize a movie object based on Marc's naming convetion
+        """
+        self._name_sty  = 'movie.{0}.{1}'
         self.path       = self._get_movie_path(path)
         self.param      = load_param(param_file, path=self.path)
         self.num        = self._get_movie_num(num)
@@ -25,6 +39,20 @@ class Movie(object):
         self.log        = self._load_log()
         self.ntimes     = self._get_ntimes()
 
+#======================================================
+
+    def _tulasi_init(self, param_file, path):
+        """ Initlize a movie object using tulasi's naming convetion
+        """
+        self._name_sty  = '{0}'
+        self.path       = path
+        self.param      = load_param(param_file, path=self.path)
+        self.num        = '999'
+        self.movie_vars = self._get_movie_vars()
+        self.log        = self._load_log()
+        self.ntimes     = self._get_ntimes()
+
+#======================================================
 
     def get_fields(self, mvars, time=None, slc=None, verbose=False):
         """ Loads the field(s) var at for a given time(s)
@@ -81,6 +109,7 @@ class Movie(object):
 
         return flds
 
+#======================================================
 
     def _get_xyz_vectors(self, time, slc):
         xyz_vecs = {}
@@ -146,6 +175,8 @@ class Movie(object):
 #
 #            fname = self.movie_path+'/movie.'+cosa+'.'+self.movie_num_str
 #            fname = os.path.abspath(fname)
+
+#======================================================
 
     def _read_movie(self, var, time, slc):
         
@@ -213,6 +244,7 @@ class Movie(object):
         mov = np.squeeze(mov)
         return mov
 
+#======================================================
 
     def _load_log(self):
         """ Loads the log file for a given set of movies files
@@ -247,6 +279,8 @@ class Movie(object):
 #   in the array each element coresponds to a diffrent time slice
 #   so      movie.movie_log_dict['bz'] = [
 
+#======================================================
+
     def _get_ntimes(self):
         ntimes = None
         if self.log is not None:
@@ -268,7 +302,7 @@ class Movie(object):
 
             raise ShouldNotGetHereError()
 
-
+#======================================================
 
     def _get_movie_path(self,path):
 
@@ -290,6 +324,7 @@ class Movie(object):
 
         return path
 
+#======================================================
 
     def _get_movie_num(self,num):
 
@@ -306,6 +341,7 @@ class Movie(object):
  
         return _num_to_ext(num)
 
+#======================================================
 
     def _get_movie_vars(self):
         #NOTE: The movie_vars are in an order, please do not switch around 
@@ -411,19 +447,3 @@ class Movie(object):
 #c#        dx = lx/nx
 #c#        dy = ly/ny
 #c#        return (np.arange(dx/2.,lx,dx),np.arange(dy/2.,ly,dy))
-
-
-class UnfinishedMovie(Movie):
-    """Class to load p3d movie data"""
-
-    def __init__(self, param=None, path='./'):
-        """ Initlize a movie object
-        """
-        self._name_sty  = '{0}'
-        self.path       = path
-        self.param      = load_param(param,path=path)
-        self.num        = '999'
-        self.movie_vars = self._get_movie_vars()
-        self.log        = self._load_log()
-        self.ntimes     = self._get_ntimes()
-

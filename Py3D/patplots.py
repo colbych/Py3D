@@ -15,13 +15,9 @@ class PatPlotter(object):
         :type mvargs: kwargs or dict
         """
 
-        if name_style == 'p3d':
-            self._M = Py3D.Movie(**mvargs)
-        elif name_style in 'unfinished tulasi'.split():
-            self._M = Py3D.movie.UnfinishedMovie(**mvargs)
+        self._M = Py3D.Movie(**mvargs)
 
         self.ctrs = []
-
 
         pgv2 = ['ni rho bx ex by ey bz ez |b| jx jy jz',
                'jix jex jiy jey jiz jez vix vex viy vey viz vez']

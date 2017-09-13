@@ -328,7 +328,8 @@ def load_movie(num=None,
                mvars='all',
                time=None,
                slc=None,
-               name_style='p3d'):
+               name_style='p3d',
+               verbose=False):
 
     """ Parameters
         ----------
@@ -349,15 +350,11 @@ def load_movie(num=None,
             what time to load the move from. If None it will ask
         name_style : str ('p3d' or 'tulasi' or 'unfinished')
             Tulasi's version of the code has different nameing convention
-            for movie files, so you have to used the UnfinsihedMovie
-            object to get this to work.
+            for movie files.
     """
 
-    if name_style is 'p3d':
-        return Movie(num, param_file, path).get_fields(mvars, time, slc)
-    elif name_style.lower() in ['tulasi', 'unfinished'] :
-        from Py3D.movie import UnfinishedMovie
-        return UnfinishedMovie(param_file, path).get_fields(mvars, time, slc)
+    return Movie(num, param_file, path, name_style,
+                 verbose).get_fields(mvars, time, slc)
 
 
 #======================================================
@@ -408,13 +405,9 @@ def check_energy_conservation(mov_num=0,
     try:
         param_file = glob.glob('param*')[0]
 
-        if use_UFM:
-            from Py3D.movie import UnfinishedMovie
-            print 'Loading temperatures from movies...'
-            M = UnfinishedMovie(param_file)
-        else:
-            print 'Loading temperatures from movie.???.000...'
-            M = Movie(0,param_file)
+        print 'Loading temperatures from movies...'
+        M = Movie(0,param_file)
+
         slc = (2,0) if M.param['nz']*M.param['pez'] > 1 else None
 
         if final_time < 0 : final_time += M.ntimes #allows for negetive indexing
