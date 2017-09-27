@@ -4,8 +4,8 @@ from scipy.io.idl import readsav
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import AutoMinorLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from Py3D.movie import Movie
-from Py3D.dumpID import DumpID
+from .movie import Movie
+from .dumpID import DumpID
 
 __all__ = ['set_local', 'ims', 'find_xpt', 'var_at', 'ims_subplot',
            'load_movie', 'check_energy_conservation', 'multi_color',

@@ -13,11 +13,11 @@ import sys
 import pdb
 import warnings
 import numpy as np
-from dump import Dump
-from _methods import load_param
-from _methods import interp_field
-from _methods import vprint
-from _methods import _num_to_ext
+from .dump import Dump
+from ._methods import load_param
+from ._methods import interp_field
+from ._methods import vprint
+from ._methods import _num_to_ext
 
 class DumpID(object):
     """

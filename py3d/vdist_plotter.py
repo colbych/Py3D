@@ -11,8 +11,8 @@ import numpy as np
 import matplotlib.pylab as plt
 import pdb
 from scipy.ndimage import gaussian_filter
-from dumpID import DumpID
-from vdist import VDist
+from .dumpID import DumpID
+from .vdist import VDist
 
 class VDistPlotter(object):
     """ velocity distribution fucntion plotter
