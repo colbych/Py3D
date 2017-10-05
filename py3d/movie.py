@@ -20,7 +20,7 @@ class Movie(object):
 
         self._verbose   = verbose
 
-        if name_style.lower() is 'p3d':
+        if name_style.lower() == 'p3d':
             self._std_init(num, param_file, path)
 
         elif name_style.lower() in ['tulasi', 'unfinished'] :

@@ -1,6 +1,10 @@
 from scipy.ndimage import gaussian_filter as gf
 import numpy as np
-import Py3D
+from .movie import Movie
+from .sub import ims
+from .sub import rotate_ten
+from .sub import calc_psi
+from .sub import date_file_prefix
 import pdb
 #import _methods
 
@@ -11,11 +15,11 @@ class PatPlotter(object):
     def __init__(self, name_style='p3d', **mvargs):
         """ Make a set of plots like kittypat used to
 
-        :param mvargs: Keyword arguments inteneded to be passed to Py3D.Movie
+        :param mvargs: Keyword arguments inteneded to be passed to py3d.Movie
         :type mvargs: kwargs or dict
         """
 
-        self._M = Py3D.Movie(**mvargs)
+        self._M = Movie(**mvargs)
 
         self.ctrs = []
 
@@ -101,7 +105,7 @@ class PatPlotter(object):
 
             print 'Plotting {}...'.format(v)
             vrs = gf(self.d[v], sigma=self.sig)
-            pcm += [Py3D.sub.ims(self.d, vrs, ax=a, no_draw=1, **kwargs)]
+            pcm += [ims(self.d, vrs, ax=a, no_draw=1, **kwargs)]
 
             for c in self._ctrs:
                 a.plot(*c, color='k',linewidth=.5)
@@ -307,7 +311,7 @@ class PatPlotter(object):
             for k in 'xx xy xz yy yz zz'.split():
                 d['t'+s+k] = d['p'+s+k]/d['n'+s]
 
-            Py3D.sub.rotate_ten(d,'t'+s, av='')
+            rotate_ten(d,'t'+s, av='')
 
             for k in 'xyz':
                 d['v'+s+k] = q*d['j'+s+k]/d['n'+s]
@@ -317,7 +321,7 @@ class PatPlotter(object):
             #d['|b|'] = np.sqrt(reduce(mag, (d['b'+k] for k in'xyz')))
             d['|b|'] = np.sqrt(d['bx']**2 + d['by']**2 + d['bz']**2)
 
-            d['psi'] = gf(Py3D.sub.calc_psi(d), sigma=self.sig)
+            d['psi'] = gf(calc_psi(d), sigma=self.sig)
 
         return d
 
@@ -349,7 +353,7 @@ class PatPlotter(object):
 
     def _make_pdf(self, overwrite=0):
         from subprocess import call
-        pdfname = Py3D.sub.date_file_prefix() + 'patplot.pdf'
+        pdfname = date_file_prefix() + 'patplot.pdf'
         print 'Making the pdf...'
         call(['convert']+self._created_files+[pdfname])
 
@@ -368,7 +372,7 @@ def pat_plots(slc=None, **mvargs):
         :param slc: A subslice if you do not want to plot everything
         :type slc: slice or numpy.s_[x, y, z, time]
 
-        :param mvargs: keywork movie arguments to be passed to Py3D.Movie
+        :param mvargs: keywork movie arguments to be passed to py3d.Movie
         :type mvargs: kwargs
     """
 
