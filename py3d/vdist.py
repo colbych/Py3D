@@ -34,23 +34,24 @@ class VDist(object):
                 dz=None,
                 v0_frame=False,
                 v_light=None,
+                weights=None,
                 **kwargs):
 
         """ Simple 2D velocity histogram
         """
         
         if v3 is not None:
-            v1, v2 = self._trim_v3(v1, v2, v3, dz, v0_frame)
+            v1, v2, weights = self._trim_v3(v1, v2, v3, dz, v0_frame, weights)
         
         if kwargs.get('bins') is None and kwargs.get('range') is None:
            self._set_bins(v1,v2, **kwargs)
 
-        H, x_edge, y_edge = np.histogram2d(v1, v2, **kwargs)
+        H, x_edge, y_edge = np.histogram2d(v1, v2, weights=weights, **kwargs)
 
         return H.T, x_edge, y_edge
         
 
-    def _trim_v3(self, v1, v2, v3, dz, v0_frame):
+    def _trim_v3(self, v1, v2, v3, dz, v0_frame, weights):
 
         if dz is None:
             dz = np.std(v3)
@@ -61,7 +62,10 @@ class VDist(object):
         v1 = v1[ind]
         v2 = v2[ind]
 
-        return v1, v2
+        if weights is not None:
+            weights = weights[ind]
+
+        return v1, v2, weights
 
 
     def _set_bins(self, v1, v2, **kwargs):
