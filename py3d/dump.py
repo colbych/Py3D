@@ -449,8 +449,11 @@ class Dump(object):
         if self._tags: 
             #pdb.set_trace()
             tags[-1] = tags[-1][:num_parts_last_buf]
-            tagparts = np.concatenate(parts).astype(self._get_tagpart_dtype())
-            tagparts['tag'] = np.concatenate(tags)
+            _prts = np.concatenate(parts)
+            _tags = np.concatenate(tags)
+            tagparts = np.empty(_prts.shape[0], dtype=self._get_tagpart_dtype())
+            tagparts[list(self._part_dtype.names)] = _prts
+            tagparts['tag'] = _tags
             return tagparts
 
         else:
