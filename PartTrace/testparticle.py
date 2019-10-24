@@ -620,17 +620,13 @@ class TPRun:
 
         self._r0  = np.zeros((3, self._npart))
 
-        c = 0. # x, y and z components
-
-        for r_i, dr_i in zip(r, dr):
+        for c, (r_i, dr_i) in enumerate(zip(r, dr)):
 
             r1            = r_i - dr_i/2.
             r2            = r_i + dr_i/2.
             self._r0[c,:] = np.random.random(self._npart)
 
             self._r0[c,:]  = self._r0[c,:]* (r2 - r1) + r1
-
-            c += 1
 
         self._velinit(v,dv)
         #self._velinitn(v,dv)

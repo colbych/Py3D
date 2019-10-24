@@ -412,8 +412,8 @@ def check_energy_conservation(mov_num=0,
 
         if final_time < 0 : final_time += M.ntimes #allows for negetive indexing
 
-        di = M.get_fields(vs, init_time, slice=slc)
-        df = M.get_fields(vs, final_time, slice=slc)
+        di = M.get_fields(vs, init_time, slc=slc)
+        df = M.get_fields(vs, final_time, slc=slc)
 
     except:
         print 'Moive did not load properly! Exiting!!!'
