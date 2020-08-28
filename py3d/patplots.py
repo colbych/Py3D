@@ -5,6 +5,7 @@ from .sub import ims
 from .sub import rotate_ten
 from .sub import calc_psi
 from .sub import date_file_prefix
+from .sub import guess_param_file
 import pdb
 #import _methods
 
@@ -19,6 +20,9 @@ class PatPlotter(object):
         :type mvargs: kwargs or dict
         """
 
+        if "param_file" not in mvargs:
+            mvargs["param_file"]= guess_param_file(mvargs.get('path', './'))
+        
         self._M = Movie(**mvargs)
 
         self.ctrs = []
@@ -31,6 +35,8 @@ class PatPlotter(object):
                 'vix viy viz', 'vex vey vez',
                 'tixx tiyy tizz', 'texx teyy tezz',
                 'tipar tiperp1', 'tepar teperp1']
+
+        self.smooth_vars = 'rho ex ey ez, jex jey jez texx teyy tezz'.split()
 
         self.page_vars_2D = [k.split() for k in pgv2]
         self.page_vars_1D = [k.split() for k in pgv1]
@@ -50,7 +56,8 @@ class PatPlotter(object):
             slc = slc[::-1] 
 
         # These will need to be arguments
-        self.sig = 0
+        self.sig = 2.
+
         #self.xy_lims = [[4.5, 6.], [7.3, 8.]]
 
         # Commented out
@@ -103,8 +110,10 @@ class PatPlotter(object):
 
         for a,v,l in zip(self.ax, page_vars, var_labels):
 
-            print 'Plotting {}...'.format(v)
-            vrs = gf(self.d[v], sigma=self.sig)
+            print('Plotting {}...'.format(v))
+            vrs = self.d[v]
+            if v in self.smooth_vars:
+                vrs = gf(vrs, sigma=self.sig, mode='wrap')
             pcm += [ims(self.d, vrs, ax=a, no_draw=1, **kwargs)]
 
             for c in self._ctrs:
@@ -146,7 +155,7 @@ class PatPlotter(object):
               self.d[2*self._not_cut_dir][0])
         
         if cut_locs is None:
-            ncuts = 10
+            ncuts = 25
             #xpcs = np.arange(4.6, 6., .1)
             xpcs = np.arange(10)/10.*ll
 
@@ -161,13 +170,16 @@ class PatPlotter(object):
 
     def _gen_conts(self, **ctargs): # d should containe psi
         d = self.d
-        print 'Generating Contours...'
+        print('Generating Contours...')
         import matplotlib.pyplot as plt
         plt.ioff()
         _f,a = plt.subplots(1,1,num=1)
 
-        ctargs['colors'] = ctargs.get('colors','k')
-        ctargs['linestyles'] = ctargs.get('linestyles', 'solid')
+        default_ctargs = {'colors':'k', 'linestyles':'solid', 'levels':25,
+                          'vmin':d['psi'].min(), 'vmax':d['psi'].max()}
+        
+        for k,v in default_ctargs.items():
+            ctargs[k] = ctargs.get(k,v)
 
         cts = a.contour(d['xx'], d['yy'], d['psi'].T, **ctargs)
 
@@ -218,8 +230,10 @@ class PatPlotter(object):
             _sl = []
             #for v,l,pwargs in zip(vrs, var_labels, plot_kwargs):
             for v,l in zip(vrs, labs):
-                gfv = gf(self.d[v][_cut_index], sigma=self.sig)
-                _sl += a.plot(_xy, gfv, label=l)
+                gfv = self.d[v][_cut_index]
+                if v in self.smooth_vars:
+                    gfv = gf(gfv, sigma=self.sig)
+                _sl += a.plot(_xy, gfv, label=l, linewidth=.5)
         
             lines += [_sl]
 
@@ -229,6 +243,8 @@ class PatPlotter(object):
                 self.d[2*self._not_cut_dir][ip])
 
             a.set_title(_tl, size=6, loc='right')
+            a.xaxis.set_tick_params(labelsize=6)
+            a.yaxis.set_tick_params(labelsize=6)
 
             if ldgargs:
                 if type(ldgargs) is not dict: ldgargs = {}
@@ -330,7 +346,8 @@ class PatPlotter(object):
     def clean_fig(self):
         import matplotlib.pyplot as plt
         if not hasattr(self, 'fig'):
-            self.fig = plt.figure(1,dpi=1200)
+            #self.fig = plt.figure(1, dpi=2400)
+            self.fig = plt.figure(1)
 
         self.fig.clf()
 
@@ -342,23 +359,24 @@ class PatPlotter(object):
 
 #========================================
 
-    def savefig(self, ext='png', dpi=1200):
+    def savefig(self, ext='png', dpi=600):
         fname = '{:03d}_patplots_save.{}'.format(self.page_counter, ext)
-        print 'Saving {}...'.format(fname)
-        self.fig.tight_layout()
-        self.fig.savefig(fname)
+        print('Saving {}...'.format(fname))
+        #self.fig.tight_layout()
+        self.fig.savefig(fname, dpi=dpi)
         self._created_files += [fname]
 
 #========================================
 
     def _make_pdf(self, overwrite=0):
         from subprocess import call
-        pdfname = date_file_prefix() + 'patplot.pdf'
-        print 'Making the pdf...'
+        pdfname = (date_file_prefix() + 
+                   'patplot_{}.pdf'.format(self.d['time']))
+        print('Making the pdf...')
         call(['convert']+self._created_files+[pdfname])
 
         # Lets clean some stuff up for reuse sake
-        print 'Removing files...'
+        print('Removing files...')
         call(['rm','-f'] + self._created_files)
 
         self._created_files = []

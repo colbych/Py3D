@@ -36,15 +36,15 @@ def load_param(param_file=None, path=''):
 #           can run through the param dictionary and replace any value
 #           with the coresponding key
     
-    for key,val in param.iteritems():
-        if param.has_key(val):
+    for key,val in param.items():
+        if val in param:
             param[key] = param[val]
 
     return param
 
 
 def _get_param_file(path=''):
-    fname = raw_input('Please enter param file: ')
+    fname = input('Please enter param file: ')
     fname = os.path.join(path, fname.strip())
     fname = os.path.abspath(os.path.expandvars(fname))
 
@@ -54,7 +54,7 @@ def _get_param_file(path=''):
         error_text = '\nFile {} not found!\nPlease enter param file: '
         error_text = error_text.format(fname)
 
-        fname = os.path.join(path, raw_input(error_text))
+        fname = os.path.join(path, input(error_text))
         fname = os.path.abspath(os.path.expandvars(fname))
 
         c += 1
@@ -96,9 +96,9 @@ def interp_field(fld, r0, sim_lens):
 
     for w in wl:
         if w < 0.:
-            print 'C'*80
-            print 'Negetive interp weight'
-            print 'C'*80
+            print('C'*80)
+            print('Negetive interp weight')
+            print('C'*80)
 
     if len(np.shape(fld)) == 2:
         return (1.-wl[0])*(1.-wl[1])*fld[lp[0],  lp[1] ]+\
@@ -124,5 +124,5 @@ def vprint(obj, *args):
     """
     if getattr(obj, '_verbose', False):
         for arg in args:
-            print arg,
-        print
+            print(arg, end='')
+        print()

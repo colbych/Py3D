@@ -91,7 +91,7 @@ class Movie(object):
                 msg = "Time {0} not in time range. Enter time between 0-{1}: "
                 msg = msg.format(time,self.ntimes-1)
 
-            time = int(raw_input(msg))
+            time = int(input(msg))
 
         flds = {} 
         for v in mvars:
@@ -106,6 +106,9 @@ class Movie(object):
         xyz_vecs = self._get_xyz_vectors(time, slc)
         for k in xyz_vecs:
             flds[k] = xyz_vecs[k]
+
+        flds['time'] = time
+        flds['param'] = self.param
 
         return flds
 
@@ -145,14 +148,14 @@ class Movie(object):
 #        for cosa in var_arr:
 #            if (cosa not in self.movie_arr):
 #                print 'Varable %s not found in movie_arr. Nothing was loaded!'%cosa
-#                cosa = raw_input('Please Enter a Varible: ')
+#                cosa = input('Please Enter a Varible: ')
 #            if (cosa not in self.movie_arr):
 #                print 'Varable %s not found in movie_arr. Nothing was loaded!'%cosa
 #                print 'You dont get a second try!'
 #                return -1
 #
 #            if time is None:
-#                time = raw_input('Time %s out of range [0 - %i]\n'% \
+#                time = input('Time %s out of range [0 - %i]\n'% \
 #                                 (time,self.num_of_times-1) + \
 #                                 'Please Enter a time: ')
 #
@@ -314,8 +317,8 @@ class Movie(object):
 
         c = 0
         while not choices and c < attempt_tol:
-            print '='*20 + ' No movie files found ' + '='*20
-            path = os.path.abspath(raw_input('Please Enter Path: '))
+            print('='*20 + ' No movie files found ' + '='*20)
+            path = os.path.abspath(input('Please Enter Path: '))
             choices = glob.glob(os.path.join(path, 
                       self._name_sty.format('log', '*')))
             c += 1
@@ -337,7 +340,7 @@ class Movie(object):
         if num not in choices:
             _ =  'Select from the following possible movie numbers: '\
                  '\n{0} '.format([int(c) for c in choices])
-            num = int(raw_input(_))
+            num = int(input(_))
  
         return _num_to_ext(num)
 
@@ -414,7 +417,7 @@ class Movie(object):
                       '\tI dont care, Im a computer not a cop'\
                       '='*80
 
-            print err_msg
+            print(err_msg)
             raise NotImplementedError()
 
 ################################################################################

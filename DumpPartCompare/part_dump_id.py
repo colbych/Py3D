@@ -23,8 +23,8 @@ import numpy as np
 p3dthon_path = '/glade/u/home/colbyh/Py3D/'
 sys.path.append(p3dthon_path)
 
-from Py3D.dump import Dump
-from Py3D.dumpID import DumpID
+from py3d.dump import Dump
+from py3d.dumpID import DumpID
 
 ############ VALUES ARE SET IN THE EXE FILE! ###############
 ############  please don't edit this unless  ###############
@@ -52,8 +52,10 @@ for k,v in zip(arg[::2], arg[1::2]):
     locals()[k] = cast_arg(v)
 
 
-save_name = 'init_partID_{}_r0=['+ (len(r0)*'{:.2f}, ')[:-2] + \
-            ']_dx=['+(len(r0)*'{:.2f}, ')[:-2] + ']_{}'
+save_name = ('init_partID_{}_r0=['+ (len(r0)*'{:.2f}, ')[:-2] +
+            ']_dx=['+(len(r0)*'{:.2f}, ')[:-2] + ']_{}')
+#save_name = ('init_partID_{}_r0=[{}]_dx=[{}]_{{}}')
+#save_name  = save_name.format(2*[(len(r0)*'{:.2f}, ')[:-2]])
 
 save_name = save_name.format(*([param_file]+r0+dx+[sp]))
 
@@ -77,7 +79,7 @@ param = MPI.COMM_WORLD.bcast(param,root=0)
 data = MPI.COMM_WORLD.bcast(data,root=0)
 
 if param['nchannels'] != size:
-    print 'Compiled for wrong number of processors!!! Exiting!!!'
+    print('Compiled for wrong number of processors!!! Exiting!!!')
 #    sys.exit()
 
 D = Dump(num=init_dump_num, param_file=param_file, path=init_path)
@@ -86,9 +88,9 @@ sub_array_on_dump = 1
 for k in 'xyz':
     sub_array_on_dump*= D.param['pe'+k]
 
-sub_array_on_dump/=D.param['nchannels']
+sub_array_on_dump = sub_array_on_dump//D.param['nchannels']
 if rank == 0:
-    print 'sub_array_on_dump ', sub_array_on_dump
+    print('sub_array_on_dump ', sub_array_on_dump)
 
 MPI.COMM_WORLD.Barrier()
 
@@ -101,16 +103,18 @@ for c in range(sub_array_on_dump):
         found_parts.append(tps[matches])
 
     if rank == 0:
-        print 'PE-{}: Done {}/{}'.format(rank,c,sub_array_on_dump)
+        print('PE-{}: Done {}/{}'.format(rank,c,sub_array_on_dump))
 
 MPI.COMM_WORLD.Barrier()
+
 if rank == 0:
-    print 'Trying to gather the found particles'
+    print('Trying to gather the found particles')
+
 final_parts = MPI.COMM_WORLD.gather(found_parts, root=0)
 if rank == 0:
     fps = []
     for k in final_parts:
         fps += k
-    print 'Saving found parts',rank+1 
+    print('Saving found parts',rank+1)
     np.save(save_name, dict(found_parts=np.concatenate(fps),
                             parts=parts,r0=r0,dx=dx))
