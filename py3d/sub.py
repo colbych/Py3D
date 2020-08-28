@@ -91,7 +91,7 @@ def ims3D(d,
                   'where 0 -> Y,Z plane\n'
                   '      1 -> Z,x plane\n'
                   'and   2 -> X,Y plane')
-        print err_msg.format(slice[0])
+        print(err_msg.format(slice[0]))
         raise IOError()
     
     return_tuple = _ims(d,plt_val,xlab,ylab,ext,ax,extent,cbar,
@@ -171,6 +171,24 @@ def ims(d,
 
 #======================================================
 
+def make_patplots(time=None, 
+                  slc=None,
+                  xy_lims=None,
+                  cut_dir='y',
+                  cut_locs=None,
+                  cont_override=None,
+                  pname_style='p3d',
+                  mvargs={}, 
+                  **kwargs):
+
+    from .patplots import PatPlotter
+    P = PatPlotter(pname_style, **mvargs)
+    P.make_plots(time, slc, xy_lims, cut_dir, cut_locs, 
+                    cont_override, **kwargs)
+    return P
+
+#======================================================
+
 def _ims(d,
          plt_val,
          xlab,
@@ -184,8 +202,10 @@ def _ims(d,
          ctargs,
          **kwargs):
 
-    if kwargs.has_key('cmap'): cmap=kwargs.pop('cmap')
-    else:                      cmap='PuOr'
+    if 'cmap' in kwargs: 
+        cmap=kwargs.pop('cmap')
+    else:
+        cmap='PuOr'
 
     im = ax.imshow(plt_val,
                    origin='low',
@@ -251,10 +271,10 @@ def find_xpt(d):
 
     if lBm > uBm: #Upper
         ip = psi[jp,:].argmax()
-        print 'Finding upper max'
+        print('Finding upper max')
     else:         #Lower
         ip = psi[jp,:].argmin()
-        print 'Finding lower min'
+        print('Finding lower min')
     xp = d['xx'][ip]
 
     return ip,jp,xp,yp
@@ -352,6 +372,8 @@ def load_movie(num=None,
             Tulasi's version of the code has different nameing convention
             for movie files.
     """
+    if param_file is None:
+        param_file = guess_param_file(path)
 
     return Movie(num, param_file, path, name_style,
                  verbose).get_fields(mvars, time, slc)
@@ -364,11 +386,11 @@ def load_parts(r0=None,
                par=False,
                **dmpkwargs):
     if r0 is None:
-        r0 = raw_input('Enter center of box(x0, y0, [z0]):\n> ')
+        r0 = input('Enter center of box(x0, y0, [z0]):\n> ')
         r0 = np.array(r0.split(',')).astype(float)
 
     if dx is None:
-        dx = raw_input('Energy widths of box(dx, dy, [dz]):\n> ')
+        dx = input('Energy widths of box(dx, dy, [dz]):\n> ')
         dx = np.array(dx.split(',')).astype(float)
 
     did = DumpID(**dmpkwargs)
@@ -395,17 +417,17 @@ def check_energy_conservation(mov_num=0,
     vs = 'pexx peyy pezz pixx piyy pizz ne ni'.split()
     if ims_var not in vs: vs.append(ims_var)
 
-    print 'Loading Energy from p3d.stdout.000...'
+    print('Loading Energy from p3d.stdout.000...')
     try:
         engs = show_energy('p3d.stdout.000').astype(float)
     except:
-        print 'p3d.stdout.000 file not found!'
+        print('p3d.stdout.000 file not found!')
         return None
 
     try:
         param_file = glob.glob('param*')[0]
 
-        print 'Loading temperatures from movies...'
+        print('Loading temperatures from movies...')
         M = Movie(0,param_file)
 
         slc = (2,0) if M.param['nz']*M.param['pez'] > 1 else None
@@ -416,7 +438,7 @@ def check_energy_conservation(mov_num=0,
         df = M.get_fields(vs, final_time, slc=slc)
 
     except:
-        print 'Moive did not load properly! Exiting!!!'
+        print('Moive did not load properly! Exiting!!!')
         return None
     
     fig = plt.figure(1)
@@ -546,15 +568,15 @@ def multi_color(slc=None, draw=False, **movkwargs):
 
     for t in time:
         fig.clf()
-        print 'Making subplots...'
+        print('Making subplots...')
         ax = [fig.add_subplot(6,5,c+1) for c in range(6*5)]
         im = []
         for a,k in zip(ax,M.movie_vars):
 
-            print 'loading ',k
+            print('loading ',k)
             d = M.get_fields(k, time=t, slc=slc)
 
-            print 'plotting ',k
+            print('plotting ',k)
             ttl = "{}: {:.2f}, {:.2f}"
             ttl = ttl.format(k, d[k].min(), d[k].max())
 
@@ -575,7 +597,7 @@ def multi_color(slc=None, draw=False, **movkwargs):
             plt.tight_layout()
             called_tight_layout = True
 
-        _ = raw_input('Hit return to see next time.')
+        _ = input('Hit return to see next time.')
 
     return ax,im
 
@@ -606,12 +628,12 @@ def three_plane(v, r0=[0., 0., 0.], **imsargs):
     xyz = M._get_xyz_vectors()
     ind0 = [np.argmin(np.abs(xyz[k+k] - r)) for r,k in zip(r0,'xyz')]
 
-    print 'Making subplots...'
+    print('Making subplots...')
     ax = [fig.add_subplot(2,2,c+1) for c in [0,3,2]]
     im = []
    
     for c in range(3):
-        print 'loading x,y slice of {} @ kp_z={}'.format(v,ind0[2])
+        print('loading x,y slice of {} @ kp_z={}'.format(v,ind0[2]))
 
         slice = ((c+2)%3,ind0[(c+2)%3])
 
@@ -651,7 +673,7 @@ def _movie_start_plot(**movargs):
     M = Movie(**movargs)
     tstr = ("Enter either a single time or in range format "
            "(start, stop, skip) between {}-{} : ")
-    t = raw_input(tstr.format(0,M.ntimes-1))
+    t = input(tstr.format(0,M.ntimes-1))
 
     try:
         t = [int(t)]
@@ -659,7 +681,7 @@ def _movie_start_plot(**movargs):
         t = [int(c) for c in t.split(',')]
         t = range(*t)
 
-    print 'Getting Fgiure...'
+    print('Getting Fgiure...')
     fig = plt.gcf()
     #fig.clf()
     istate = plt.isinteractive
@@ -685,7 +707,7 @@ def show_energy(fname=None):
             If None it will ask.
     """
     if fname is None:
-        fname = raw_input('Enter p3d.stdout file: ')
+        fname = input('Enter p3d.stdout file: ')
 
     f = open(fname, 'r')
     eng = []
@@ -736,13 +758,52 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
     elif dir == 'y':
         xarr = xarr*0.0 + itcpt
     else:
-        print 'I dont understand what direction ' + str(dir) + \
-              'is! Nothing plotted.'
+        print('I dont understand what direction ' + str(dir) +
+              'is! Nothing plotted.')
         return None
 
     ax.plot(xarr,yarr,**kwargs)
 
 #======================================================
+
+def guess_param_file(path):
+    """ A simpile method that plots how well the total energy is conserved
+        Parameters
+        ----------
+        mov_num 
+
+    """
+    import glob 
+    param_file = glob.glob('param*')
+    param_file = param_file[0] if param_file else None 
+    return param_file
+
+#======================================================
+
+def ohms_law(d):
+    vix,viy,viz = [d[_]/d['ni'] for _ in "jix jiy jiz".split()]
+    dvx,dvy,dvz = [d[_]/d['ni'] for _ in "jx jy jz".split()]
+    bx,by,bz = [d[_] for _ in "bx by bz".split()]
+    Pex = d['pexx']
+    Pey = d['peyy']
+    dx = d['xx'][1] - d['xx'][0]
+    dy = d['yy'][1] - d['yy'][0]
+
+    T1x = -viy*bz + viz*by
+    T1y = -viz*bx + vix*bz
+    T1z = -vix*by + viy*bx
+
+    T2x = dvy*bz - dvz*by
+    T2y = dvz*bx - dvx*bz
+    T2z = dvx*by - dvy*bx
+
+    T3x = -(np.roll(Pex, -1, axis=0) - np.roll(Pex, 1, axis=0))/2./dx/d['ni']
+    T3y = -(np.roll(Pey, -1, axis=1) - np.roll(Pey, 1, axis=1))/2./dy/d['ni']
+     
+    return [T1x,T1y,T1z], [T2x,T2y,T2z], [T3x,T3y] 
+
+#======================================================
+
 # Method hold over from p3d_run, needs to be revised!
 #
 #def avg_movie(fname=None, 
@@ -754,11 +815,11 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #    way = 'slow'
 #
 #    if fname is None:
-#        fname = raw_input('Enter Save file name base: ')
+#        fname = input('Enter Save file name base: ')
 #
 #    if way == 'fast':
 #        CC = p3d_run('local',param=param)
-#        print 'Loading time %i'%0
+#        print('Loading time %i'%0)
 #        CR = CC.load_movie('all',0)
 #
 #        ntimes = CC.movie.num_of_times
@@ -774,12 +835,12 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #            CR[k+'av'] = CR[k]/1.0/ntimes
 #            CR[k] = _[k][-1,:,:]
 #
-#        print 'TOTAL TIME: %f'%(time.time() - t)
+#        print('TOTAL TIME: %f'%(time.time() - t))
 #
 #    else:
 #    ## First way I tried, may be slow?
 #        CC = p3d_run('local',param=param)
-#        print 'Loading time %i'%0
+#        print('Loading time %i'%0)
 #        CR = CC.load_movie('all',0,mov)
 #        
 #        if ntimes is None:
@@ -791,7 +852,7 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #
 #        t = time.time()
 #        for cosa in range(1,ntimes):
-#            print '\n==================\n' \
+#            print('\n==================\n' \)
 #                    'Loading time %i' \
 #                  '\n==================\n'%cosa
 #            _ = CC.load_movie('all',cosa)
@@ -810,7 +871,7 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #        CR['teperp1av'] = CR['peperp1av']/CR['neav']
 #        CR['teperp2av'] = CR['peperp2av']/CR['neav']
 #
-#        print 'TOTAL TIME: %f'%(time.time() - t)
+#        print('TOTAL TIME: %f'%(time.time() - t))
 #
 #        CRL = {}
 #        CRU = {}
@@ -826,9 +887,9 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
 #                CRL[k] = CR[k]
 #                CRU[k] = CR[k]
 #        
-#        print 'Saving lower data...'
+#        print('Saving lower data...')
 #        np.save(fname+'_lower',CRL)
-#        print 'Saving upper data...'
+#        print('Saving upper data...')
 #        np.save(fname+'_upper',CRU)
 #
 #        if save_full:
@@ -856,20 +917,20 @@ def roll_run(d, sx=None):
     kavlst = [k+'av' for k in klst]
     if sx is None:
         if d['yy'][0] < 1.0: 
-            print 'Gonna roll RIGHT!!!!!!!!!!!!'
+            print('Gonna roll RIGHT!!!!!!!!!!!!')
             sx = -1*np.size(d['xx'])/4
         else: 
-            print 'Gonna roll LEFT!!!!!!!!!!!!'
+            print('Gonna roll LEFT!!!!!!!!!!!!')
             sx = np.size(d['xx'])/4
     
     for key in d.keys():
 # Old way not super smart
 #        if key.rfind('av') == len(key)-2 and len(key) > 2:
-#            print 'Rolling ',key
+#            print('Rolling ',key)
 #            d[key] = np.roll(d[key],sx,axis=1)
 # New way a little bit smarter
         if key in klst or key in kavlst:
-            print 'Rolling ',key
+            print('Rolling ',key)
             d[key] = np.roll(d[key],sx,axis=1)
 
 #======================================================
@@ -907,8 +968,8 @@ def rotate_ten(d,
                full_rotate=False):
 
     if var+'par'+av in d and not overwrite:
-        print 'Warning: {} was found in the'.format(var+'par'+av) +\
-              'restored data: nothing will be rotated!!!!'
+        print('Warning: {} was found in the'.format(var+'par'+av) +
+              'restored data: nothing will be rotated!!!!')
         pass
 
         
@@ -1013,7 +1074,7 @@ def calc_pdf(ar, pdf_min=None, pdf_max=None, weight=100, inc=0, ax=0):
     """
     
     if len(ar) == 0:
-        print 'No array provided! Exiting!'
+        print('No array provided! Exiting!')
         return
     if pdf_min is None:
         pdf_min = ar.min()

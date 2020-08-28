@@ -17,7 +17,6 @@ from ._methods import load_param
 from ._methods import vprint
 from ._methods import _num_to_ext
 
-# Change foo.has_key(bar) to bar in foo 
 class Dump(object):
     """ class that reads and stores dump file data
         
@@ -46,7 +45,7 @@ class Dump(object):
         self._set_part_dtype()
         self._tags = False
         self._endian = '<' # I dont think we need this
-        if self.param.has_key('mult_species'):
+        if 'mult_species' in self.param:
             self.is_mult_species = True
             raise NotImplementedError()
         else: 
@@ -64,7 +63,7 @@ class Dump(object):
             
             _ =  'Select from the following possible dump file numbers:' \
                  '\n{0} '.format([int(cho) for cho in choices])
-            num = int(raw_input(_))
+            num = int(input(_))
  
         self.num = _num_to_ext(num)
 
@@ -99,8 +98,8 @@ class Dump(object):
         parts = self._pop_particles(F,wanted_procs)
 
         if F.read():
-            print 'ERROR: The entire dump file was not read.\n'\
-                  '       Returning what was read.'
+            print('ERROR: The entire dump file was not read.\n'
+                  '       Returning what was read.')
         F.close()
 
         return parts
@@ -140,7 +139,7 @@ class Dump(object):
             for k in fields:
                 fields[k] = np.concatenate((fields[k],f[k]),axis=2)
 
-        for k,v in self._get_xyz_vectors().iteritems():
+        for k,v in self._get_xyz_vectors().items():
             fields[k] = v
 
         for k in fields:
@@ -189,7 +188,7 @@ class Dump(object):
             for k in fields:
                 fields[k] = np.concatenate((fields[k],f[k]),axis=2)
 
-        for k,v in self._get_xyz_vectors().iteritems():
+        for k,v in self._get_xyz_vectors().items():
             fields[k] = v
 
         for k in fields:
@@ -225,8 +224,8 @@ class Dump(object):
 
         c = 0
         while not choices and c < attempt_tol:
-            print '='*20 + ' No dump files found ' + '='*20
-            path = os.path.abspath(raw_input('Please Enter Path: '))
+            print('='*20 + ' No dump files found ' + '='*20)
+            path = os.path.abspath(input('Please Enter Path: '))
             choices =  get_choices(path)
             c =+ 1
 
@@ -244,8 +243,8 @@ class Dump(object):
         try:
             F = open(fname, "rb")
         except IOError as e:
-            print "I/O error({0}): {1}".format(e.errno, e.strerror)
-            print "ERROR: Could not open file. " + fname
+            print("I/O error({0}): {1}".format(e.errno, e.strerror))
+            print("ERROR: Could not open file: {}".format(fname))
 
         return F
 
@@ -256,7 +255,7 @@ class Dump(object):
         elif self.param['prk'] == 8:
             ntype = 'float64'
         else:
-            print 'prk number {0} not understood!'.format(self.param['prk'])
+            print('prk number {0} not understood!'.format(self.param['prk']))
             raise Exception("Unknown Param Entry")
 
         self._part_dtype = np.dtype([('x' , ntype), 
@@ -300,7 +299,7 @@ class Dump(object):
                 for py in range(self.py):
                     pad = self._pop_int(F)
                     fdict[fld].append(np.fromfile(F, dtype=dtype,
-                                                  count=pad/dtype_size))
+                                                  count=int(pad/dtype_size)))
                     self._pop_int(F)
                     #pdb.set_trace()
 
@@ -342,8 +341,8 @@ class Dump(object):
             self.param['pez']%self.nchannels != 0:
             raise NotImplementedError()
         else:
-            nprocs = self.param['pex']*self.param['pey']*\
-                     self.param['pez']/self.nchannels
+            nprocs = int(self.param['pex']*self.param['pey']*\
+                         self.param['pez']/self.nchannels)
 
         # If no processosors are spesified, the defual is to return everything
         # on the dump file, i.e. a list from 0 to the number of procs (nprocs)
@@ -371,7 +370,7 @@ class Dump(object):
                 #           pes[sp][n]['y'].min(),pes[sp][n]['y'].max(),
                 #           pes[sp][n]['z'].min(),pes[sp][n]['z'].max()]
 
-                #    print '[%2.3f, %2.3f, %2.3f, %2.3f, %2.3f, %2.3f]'%tuple(lpe)
+                #    print('[%2.3f, %2.3f, %2.3f, %2.3f, %2.3f, %2.3f]'%tuple(lpe))
         return pes
 
     def _skip_parts(self,F):
@@ -427,7 +426,7 @@ class Dump(object):
 
             # First we have to read the particle locations and velocties
             # Each particle takes up prk bytes x 6 for (x,y,z,vx,vy,vz)
-            parts_on_buf = pad/(self.param['prk']*6)
+            parts_on_buf = int(pad/(self.param['prk']*6))
 
             parts.append( np.fromfile(F, dtype=self._part_dtype, 
                                          count=parts_on_buf))
@@ -448,12 +447,18 @@ class Dump(object):
 
         if self._tags: 
             #pdb.set_trace()
+            #tags[-1] = tags[-1][:num_parts_last_buf]
+            #tagparts = np.concatenate(parts).astype(self._get_tagpart_dtype())
+            #tagparts['tag'] = np.concatenate(tags)
+
+            # Grabed from github
             tags[-1] = tags[-1][:num_parts_last_buf]
             _prts = np.concatenate(parts)
             _tags = np.concatenate(tags)
             tagparts = np.empty(_prts.shape[0], dtype=self._get_tagpart_dtype())
             tagparts[list(self._part_dtype.names)] = _prts
             tagparts['tag'] = _tags
+
             return tagparts
 
         else:

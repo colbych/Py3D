@@ -184,7 +184,7 @@ class VDistPlotter(object):
             mass = 1.
         elif species == 'e':
             if mass is None:
-                mass = float(raw_input('Enter electron mass: '))
+                mass = float(input('Enter electron mass: '))
 
 
         H, xx, yy = VDist().spec1d(self.parts[species],
@@ -224,7 +224,7 @@ class VDistPlotter(object):
         if type(ctargs) is not dict:
             msg = 'ctargs is type {}, but must be type dict.'\
                   'No conrours plotted!'
-            print msg.format(type(ctargs))
+            print(msg.format(type(ctargs)))
             pass 
         
         defaults = dict(linestyles='solid', colors='black')
@@ -311,14 +311,14 @@ class VDistPlotter(object):
             msg = '{0} or {1} not possible option (0, 1, 2).\n'\
                   'Remember (0, 1, 2) -> (x, y, z) or \n'\
                   'if par == True (0, 1, 2) -> (b, exb, bx(exb))'
-            print msg.format(d1,d2)
+            print(msg.format(d1,d2))
             raise KeyError('Bad dimension numbers {} or {}'.format(d1,d2))
         elif d1 == d2:
             msg = '{0} = {1} which seems like a mistake.\n'\
                   'Also the 3rd direction is ambiguous\n'\
                   'Remember (0, 1, 2) -> (x, y, z) or \n'\
                   'if par == True (0, 1, 2) -> (b, exb, bx(exb))'
-            print msg.format(d1,d2)
+            print(msg.format(d1,d2))
             raise KeyError('Bad dimension numbers: {} = {}'.format(d1,d2))
 
         if self._par:
@@ -330,7 +330,7 @@ class VDistPlotter(object):
                          1: 'vy',
                          2: 'vz'}
        
-        d3 = range(3)
+        d3 = list(range(3))
         d3.remove(d1)
         d3.remove(d2)
         d3 = d3[0]
@@ -374,7 +374,7 @@ class VDistPlotter(object):
         msg = 'Please enter the center location to \n'\
               'calculate the distribution function (x, y, (z)): '
         while not isinstance(r0, (list, np.ndarray, np.generic)):
-            r0 = raw_input(msg).split(',')
+            r0 = input(msg).split(',')
             r0 = self._convert_to_float(r0)
 
             if ctr > atmp_tol:
@@ -392,7 +392,7 @@ class VDistPlotter(object):
         msg = 'Please enter the width of the box to collect \n'\
                'particles in  the distribution function (dx, dy, (dz)): '
         while not isinstance(dx, (list, np.ndarray, np.generic)):
-            dx = raw_input(msg).split(',')
+            dx = input(msg).split(',')
             dx = self._convert_to_float(dx)
 
             if ctr > atmp_tol:
@@ -406,7 +406,7 @@ class VDistPlotter(object):
 
     def _get_ax(self, ax):
         if ax is None:
-            #print "Grabbing matplotlib's current axes"
+            #print("Grabbing matplotlib's current axes")
             ax = plt.gca()
 
         return ax
