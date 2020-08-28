@@ -98,6 +98,11 @@ class VDistPlotter(object):
         
         ax = self._get_ax(ax)
         self._set_parts(par)
+
+        weights = kwargs.get('weights', None)
+        if "useweights" in self._dumpid.param:
+            weights = self._calc_weights(sp)
+
         # Debug stuff
         k1,k2,k3 = self._get_coord(d1,d2)
         v1 = self.parts[sp][k1]
@@ -107,7 +112,8 @@ class VDistPlotter(object):
         else:
             v3 = self.parts[sp][k3]
 
-        H, xx, yy = VDist().vdist2d(v1, v2, v3, dz, v0_frame, **kwargs)
+        H, xx, yy = VDist().vdist2d(v1, v2, v3, dz, v0_frame, 
+                                    weights=weights, **kwargs)
         H = self._smooth(xx, yy, H, smooth)
 
         pcmargs = dict(pcmargs)
@@ -227,7 +233,9 @@ class VDistPlotter(object):
     
         redge = lambda x : (x[1:] + x[:-1])/2.
         
-        ctr = ax.contour(redge(xx) , redge(yy), H, **ctargs)
+        # we need to hadle a bug from mpl 2.*
+        lvls = ctargs.pop('levels', None)
+        ctr = ax.contour(redge(xx) , redge(yy), H, lvls, **ctargs)
 
         return ctr
 
@@ -335,10 +343,28 @@ class VDistPlotter(object):
     def _set_parts(self, par):
         if self.parts is None or self._par != par:
             self._par = par
-            self.parts = self._dumpid.get_part_in_box(
-                self.r0, self.dx, self._par)
+
+            tags = ("useweights" in self._dumpid.param)
+            print "Calculating weights from tags..."
+            self.parts = self._dumpid.get_part_in_box(self.r0, 
+                                                      self.dx,
+                                                      self._par,
+                                                      tags=tags)
 
         return self
+
+#===========================================================#
+
+    def _calc_weights(self, sp):
+        extractor = int(8*"0" + 8*"1" + 48*"0", 2)
+        tag = self.parts[sp]['tag']
+        n_avg =  self._dumpid.dump.n_avg
+        
+        weights = (1. - (tag & extractor)/2.**48/250.)/n_avg
+        
+# HACK the weight away!!!
+#        weights = 1.0 + 0.*tag
+        return weights
 
 #===========================================================#
 

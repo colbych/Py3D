@@ -155,9 +155,9 @@ class DumpID(object):
 
         if np.sum(e0**2) < np.spacing(10): 
             # Some timese there are just no E fields
-            exb = np.cross(b0, np.array([0.,1.,0.]))
+            exb = np.cross(np.array([0.,1.,0.]), b0)
         else:
-            exb = np.cross(b0,e0)
+            exb = np.cross(e0,b0)
 
         exb = exb/np.sqrt(np.sum(exb**2))
 
