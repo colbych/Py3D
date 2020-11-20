@@ -19,6 +19,9 @@ class Movie(object):
         """
 
         self._verbose   = verbose
+        
+        if param_file is None:
+            param_file = guess_param_file(path)
 
         if name_style.lower() == 'p3d':
             self._std_init(num, param_file, path)
@@ -419,6 +422,21 @@ class Movie(object):
 
             print(err_msg)
             raise NotImplementedError()
+
+
+
+    def guess_param_file(self, path):
+        """ A simpile method that plots how well the total energy is conserved
+            Parameters
+            ----------
+            mov_num 
+
+        """
+        param_file = glob.glob('param*')
+        param_file = param_file[0] if param_file else None 
+        return param_file
+
+#======================================================
 
 ################################################################################
 ############   Any thing below here has not been added yet  ####################

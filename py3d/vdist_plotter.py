@@ -345,7 +345,7 @@ class VDistPlotter(object):
             self._par = par
 
             tags = ("useweights" in self._dumpid.param)
-            print "Calculating weights from tags..."
+            print("Calculating weights from tags...")
             self.parts = self._dumpid.get_part_in_box(self.r0, 
                                                       self.dx,
                                                       self._par,

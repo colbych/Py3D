@@ -372,8 +372,6 @@ def load_movie(num=None,
             Tulasi's version of the code has different nameing convention
             for movie files.
     """
-    if param_file is None:
-        param_file = guess_param_file(path)
 
     return Movie(num, param_file, path, name_style,
                  verbose).get_fields(mvars, time, slc)
