@@ -21,7 +21,7 @@ class Movie(object):
         self._verbose   = verbose
         
         if param_file is None:
-            param_file = guess_param_file(path)
+            param_file = self.guess_param_file(path)
 
         if name_style.lower() == 'p3d':
             self._std_init(num, param_file, path)
@@ -134,7 +134,7 @@ class Movie(object):
             dt = self.param['n_movieout']*self.param['dt']
         except KeyError:
             dt = self.param['movieout']
-        xyz_vecs['tt'] = dt*np.arange(self.ntimes)
+        xyz_vecs['tt'] = dt*np.arange(self.ntimes+1)
         
         if slc is not None:
             for s,vv in zip(slc, 'tt zz yy xx'.split()):

@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N IDparts
-#PBS -A UDEL0004
+#PBS -A UDEL0008
 #PBS -q premium
 #PBS -l walltime=00:10:00
 #PBS -j oe

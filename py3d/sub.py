@@ -202,15 +202,14 @@ def _ims(d,
          ctargs,
          **kwargs):
 
-    if 'cmap' in kwargs: 
-        cmap=kwargs.pop('cmap')
-    else:
-        cmap='PuOr'
+    cmap = kwargs.pop('cmap', 'PuOr_r')
+    interp = kwargs.pop('interpolation', 'none')
 
     im = ax.imshow(plt_val,
-                   origin='low',
+                   origin='lower',
                    extent=ext,
                    cmap=cmap,            # I just love this color map
+                   interpolation=interp,
                    **kwargs)
 
     if extent is not None:
@@ -1107,3 +1106,101 @@ def calc_pdf(ar, pdf_min=None, pdf_max=None, weight=100, inc=0, ax=0):
         pdf[i] = weight/(arr[start:start+weight].max()-arr[start:start+weight].min())
     pdf = pdf/arsize
     return binvals,pdf
+
+#======================================================
+
+def get_times(**movie_kwargs):
+    """ Gets a ndarray of the times for a given movie file    
+    Parameters
+    ==========
+        **movie_kwargs : Movie object key word arguments
+
+    """
+    M = Movie(**movie_kwargs)
+    tt = M.param['n_movieout']*M.param['dt']*np.arange(M.ntimes)
+    return tt
+
+#======================================================
+
+def sim_movies(**mvargs):
+    import os
+    save_dir = './_tmp_movie_figs'
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    else:
+        raise 
+
+    plt.ioff()
+    sfname = save_dir+"/{}_{:03d}.png"
+
+    mvs = ("bx:$B_x$ by:$B_y$ bz:$B_z$ bm:$|B|$ "
+           "ex:$E_x$ ey:$E_y$ ez:$E_z$ em:$|E|$ "
+           "vix:$v_{ix}$ viy:$v_{iy}$ viz:$v_{iz}$ "
+           "vex:$v_{ex}$ vey:$v_{ey}$ vez:$v_{ez}$ "
+           "ni:$n_i$ ne:$n_e$ "
+           "tipar:$T_{i\parallel}$ tiperp1:$T_{i\perp}$ "
+           "tixx:$T_{ixx}$ tiyy:$T_{iyy}$ tizz:$T_{izz}$ "
+           "tepar:$T_{e\parallel}$ teperp1:$T_{e\perp}$ "
+           "texx:$T_{exx}$ teyy:$T_{eyy}$ tezz:$T_{ezz}$").split()
+
+    shft_vars = "bx by bz ex ey ez vix viy viz vex vey vez".split()
+
+    fig = plt.figure(1)
+    tt = get_times(**mvargs)
+    
+    v_ext = {_m.split(":")[0]:None for _m in mvs}
+
+    for _c,_t in enumerate(tt[::-1]):
+        num = len(tt) - _c
+        d = load_movie(time=num, **mvargs)
+        rotate_ten(d, 'pi', av='')
+        rotate_ten(d, 'pe', av='')
+
+        d['bm'] = np.sqrt(d['bx']**2 + d['by']**2 + d['bz']**2)
+        d['em'] = np.sqrt(d['ex']**2 + d['ey']**2 + d['ez']**2)
+
+        for s in 'ie':
+            for c in 'xyz':
+                k1 = 'v{}{}'.format(s,c)
+                k2 = 'j{}{}'.format(s,c)
+                k3 = 'n{}'.format(s)
+                sg = ('ei'.index(s) - .5)*2.
+                d[k1] = sg*d[k2]/d[k3]
+
+        for s in 'ie':
+            for k in 'par perp1 xx yy zz'.split():
+                d['t{}{}'.format(s,k)] = d['p{}{}'.format(s,k)]/d['n'+s]
+
+        for mv in mvs:
+            fig.clf()
+            fig.set_size_inches(6., 4.)
+            fig.subplots_adjust(left=.15, bottom=.2, right=.875)
+            ax = fig.add_subplot(111)
+
+            k,T = mv.split(":")
+            
+            if v_ext[k] is None:
+                if k in shft_vars:
+                    _max = max(d[k].max(), abs(d[k].min()))
+                    _std = np.std(d[k])
+                    _max = min(3.*_std, _max)
+                    v_ext[k] = [-_max, _max, 'bwr']
+                else:
+                    _max = min(np.mean(d[k]) + 3.*_std, d[k].max())
+                    v_ext[k] = [0., _max, 'jet']
+
+            vmin,vmax,cmap = v_ext[k]
+            ims(d, d[k], ax=ax, vmin=vmin, vmax=vmax, cmap=cmap, cbar=1,
+                no_draw=True)
+
+            ax.set_xlabel("$X\ d_i$")
+            ax.set_ylabel("$Y\ d_i$")
+            ttl = "{}, Time = {:3.0f}$\Omega_{{ci}}^{{-1}}$"
+            ax.set_title(ttl.format(T, _t))
+
+            print("Saving {}...".format(sfname.format(k, num)))
+            fig.savefig(sfname.format(k, num), dpi=200)
+
+    plt.ion()
+    print("Done!")
+#======================================================
