@@ -353,7 +353,7 @@ def load_movie(num=None,
     """ Parameters
         ----------
         num : int
-            Moving number to load. If None it will ask
+            Movie number to load. If None it will ask
         param_file : str
             name of param file, If None it will ask.
         path : str
