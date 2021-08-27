@@ -10,7 +10,7 @@ from .dumpID import DumpID
 __all__ = ['set_local', 'ims', 'find_xpt', 'var_at', 'ims_subplot',
            'load_movie', 'check_energy_conservation', 'multi_color',
            'show_energy', 'calc_psi', 'readsave', 'date_file_prefix',
-           'rs3d', 'rotate_ten', 'load_parts']
+           'rs3d', 'rotate_ten', 'load_parts','findval']
 
 #======================================================
 def set_local(d, loc, overwrite=False):
@@ -1203,4 +1203,21 @@ def sim_movies(**mvargs):
 
     plt.ion()
     print("Done!")
+#======================================================
+def findval(vec,val):
+    """Returns index value of 1D array vec which is closest to scalar val
+     
+    WARNING: 8/27/2021: Currently this function assumes that vec is monotonically increasing or
+                        decreasing. If it isn't, it may return an array. 
+ 
+
+    Args:
+        vec (1D array): The 1D array to be searched
+        val (scalar):   The value to search for.
+
+    """
+
+    vec2 = abs( (vec - val)**2 )
+    index = ( np.where(vec2 == vec2.min()))[0].item()
+    return index
 #======================================================
