@@ -593,7 +593,8 @@ def multi_color(slc=None, draw=False, **movkwargs):
         if not called_tight_layout:
             plt.tight_layout()
             called_tight_layout = True
-
+        
+        print('Figure shows movie time index of ',t)
         _ = input('Hit return to see next time.')
 
     return ax,im
@@ -678,7 +679,7 @@ def _movie_start_plot(**movargs):
         t = [int(c) for c in t.split(',')]
         t = range(*t)
 
-    print('Getting Fgiure...')
+    print('Getting Figure...')
     fig = plt.gcf()
     #fig.clf()
     istate = plt.isinteractive
