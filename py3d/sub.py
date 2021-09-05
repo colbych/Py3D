@@ -1208,8 +1208,8 @@ def sim_movies(**mvargs):
 def findval(vec,val):
     """Returns index value of 1D array vec which is closest to scalar val
      
-    WARNING: 8/27/2021: Currently this function assumes that vec is monotonically increasing or
-                        decreasing. If it isn't, it may return an array. 
+    WARNING: 9/5/2021: If multiple values of array vec are equidistant from scalar 
+                       val, the value with the lowest index is returned. 
  
 
     Args:
@@ -1219,6 +1219,6 @@ def findval(vec,val):
     """
 
     vec2 = abs( (vec - val)**2 )
-    index = ( np.where(vec2 == vec2.min()))[0].item()
+    index = ( np.where(vec2 == vec2.min()))[0][0]
     return index
 #======================================================
