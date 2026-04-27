@@ -16,7 +16,11 @@ dependencies = [
 
 [project.optional-dependencies]
 hpc = ["mpi4py"]
+dev = ["pytest"]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["py3d*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

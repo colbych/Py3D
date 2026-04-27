@@ -202,11 +202,13 @@ d = m.get_fields(10, 'bx', 'by', 'bz', 'ex')
 py3d.ims(d, 'bx')
 ```
 
-### No Test Suite
-There are no automated tests. When modifying code:
-- Test interactively against real simulation data if available
-- Check that `py3d/__init__.py` imports still work after changes
-- Verify numpy array shapes and dtypes remain consistent
+### Running Tests
+```bash
+pip install -e ".[dev]"
+pytest
+```
+
+Tests live in `tests/`. Pure functions and synthetic-data tests are fully covered. See **Deferred Testing Work** below for known gaps.
 
 ### Git Branching
 - Main branch: `master`
@@ -226,7 +228,20 @@ There are no automated tests. When modifying code:
 ## Known Issues / Gotchas
 
 1. **Python 2→3 migration**: The codebase was originally Python 2. Some legacy patterns may remain (e.g., `print` statement style comments, `input()` usage).
-2. **No packaging**: Cannot be installed via `pip install .` — must use `PYTHONPATH`.
-3. **Interactive prompts**: Some functions call `input()` to ask the user for file paths; avoid in non-interactive contexts.
-4. **scipy.io.idl**: Used for reading IDL `.sav` files; may require older scipy versions depending on the simulation data format.
-5. **C extensions**: `PartTrace` will silently fail or produce wrong results if `.so` files are not compiled for the current platform.
+2. **Interactive prompts**: Several classes (`Movie`, `Dump`, `DumpID`) call `input()` to ask the user for file paths; avoid in non-interactive contexts. Refactor planned for Phase 5.
+3. **C extensions**: `PartTrace` will silently fail or produce wrong results if `.so` files are not compiled for the current platform.
+4. **`spec1d` uses deprecated `normed=True`**: `VDist.spec1d` calls `np.histogram2d(normed=True)`, removed in NumPy 2.0. Should be changed to `density=True`. Tracked in Deferred Testing Work below.
+
+---
+
+## Deferred Testing Work
+
+These items are explicitly out of scope for the current test suite and should be revisited in later phases:
+
+| Item | Reason deferred | Target phase |
+|------|----------------|--------------|
+| `Movie`, `Dump`, `DumpID` unit tests | Classes use `input()` prompts and require binary simulation files. Need Phase 5 refactor to accept explicit paths before they are testable. | Phase 5 |
+| Plotting functions (`ims`, `PatPlotter.make_plots`, `VDistPlotter.plot2d`) | Produce matplotlib figures. Require visual regression tooling (e.g. `pytest-mpl`) to test meaningfully. | Post-Phase 4 |
+| `VDist.spec1d` (full test) | Uses `np.histogram2d(normed=True)` removed in NumPy 2.0. Tests are marked `xfail`. Fix the call to `density=True` first. | Phase 5 |
+| `PartTrace.TPRun` integration tests | Requires compiled C extensions (`functions.so`, `functions_rel.so`). Need a CI build step to compile them. | Phase 4 CI |
+| `DumpPartCompare/` MPI tests | Requires an MPI runtime. Integration-test territory, not unit tests. | Out of scope |
