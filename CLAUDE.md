@@ -170,7 +170,17 @@ Use `#======...` style dividers between logical sections within files.
 ## Development Workflow
 
 ### Setup
-There is no `setup.py` or `pyproject.toml`. Add the repo root to `PYTHONPATH`:
+Install as an editable package (recommended for research use — source edits take effect immediately):
+```bash
+pip install -e /path/to/Py3D
+```
+
+With optional MPI support for `DumpPartCompare/`:
+```bash
+pip install -e "/path/to/Py3D[hpc]"
+```
+
+If you cannot use pip, the legacy approach still works:
 ```bash
 export PYTHONPATH=/path/to/Py3D:$PYTHONPATH
 ```

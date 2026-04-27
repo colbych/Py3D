@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "py3d"
+version = "0.1.0"
+description = "Python tools for reading and analyzing P3D particle-in-cell simulation data"
+authors = [{name = "Colby Haggerty"}]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+hpc = ["mpi4py"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["py3d*"]

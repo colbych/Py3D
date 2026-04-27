@@ -1,5 +1,7 @@
 import sys
 
+__version__ = "0.1.0"
+
 from .movie import Movie
 from .dumpID import DumpID
 from .vdist_plotter import VDistPlotter
