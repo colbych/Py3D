@@ -379,7 +379,7 @@ class Dump(object):
         num_parts = self._pop_int(F)
         self._pop_int(F)
 
-        n_bufs = int(np.floor(1.*num_parts/self.bufsize))
+        n_bufs = int(np.floor(num_parts/self.bufsize))
         num_parts_last_buf = num_parts - self.bufsize*n_bufs
 
         if num_parts_last_buf > 0:
@@ -407,7 +407,7 @@ class Dump(object):
         num_parts = self._pop_int(F)
         self._pop_int(F)
 
-        n_bufs = int(np.floor(1.*num_parts/self.bufsize))
+        n_bufs = int(np.floor(num_parts/self.bufsize))
         num_parts_last_buf = num_parts - self.bufsize*n_bufs
 
         if num_parts_last_buf > 0:
