@@ -7,9 +7,6 @@
 #                                                                     #
 #######################################################################
 import os
-import sys 
-import pdb
-import time
 import glob
 import struct
 import numpy as np
@@ -93,7 +90,7 @@ class Dump(object):
         self._read_header(F)
         
         if index in self._dump_files_with_fields():
-            flds = self._pop_fields(F)
+            self._pop_fields(F)
 
         parts = self._pop_particles(F,wanted_procs)
 
@@ -353,8 +350,8 @@ class Dump(object):
         for sp in self.species: 
             pes[sp] = []
 
-            pad = self._pop_int(F)
-            n_pes = struct.unpack('<i',F.read(4))[0] 
+            self._pop_int(F)
+            struct.unpack('<i', F.read(4))
             self._pop_int(F)
 
             for n in range(nprocs):
@@ -375,7 +372,7 @@ class Dump(object):
 
     def _skip_parts(self,F):
 
-        pad = self._pop_int(F)
+        self._pop_int(F)
         num_parts = self._pop_int(F)
         self._pop_int(F)
 

@@ -16,7 +16,7 @@ dependencies = [
 
 [project.optional-dependencies]
 hpc = ["mpi4py"]
-dev = ["pytest"]
+dev = ["pytest", "ruff"]
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -24,3 +24,14 @@ include = ["py3d*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff.lint]
+select = ["E", "F"]
+ignore = [
+    "E501",  # line too long — physics expressions are often long
+    "E701",  # multiple statements on one line — idiomatic in this codebase
+    "E702",  # multiple statements on one line (semicolon) — idiomatic
+    "E731",  # lambda assignment — used for short one-off math functions
+    "E741",  # ambiguous variable name — 'l' is standard for 'label' in matplotlib
+    "F403",  # star import from sub is intentional (public API re-export)
+]

@@ -6,11 +6,8 @@
 #                                                                     #
 #                                                                     #
 #######################################################################
-import datetime
 import numpy as np
 import matplotlib.pylab as plt
-import pdb
-from scipy.ndimage import gaussian_filter
 from .dumpID import DumpID
 from .vdist import VDist
 
@@ -271,8 +268,6 @@ class VDistPlotter(object):
 #===========================================================#
 
     def _set_lims(self, ax, xx, yy, pcm):
-        from matplotlib.colors import LogNorm
-
         ax.set_xlim(xx[0], xx[-1])
         ax.set_ylim(yy[0], yy[-1])
         #pcmax = pcm.get_clim()[1]
@@ -378,7 +373,7 @@ class VDistPlotter(object):
             r0 = self._convert_to_float(r0)
 
             if ctr > atmp_tol:
-                raise IOerror('Exceed allowed attemps')
+                raise IOError('Exceed allowed attemps')
             else:
                 ctr += 1
 
@@ -396,7 +391,7 @@ class VDistPlotter(object):
             dx = self._convert_to_float(dx)
 
             if ctr > atmp_tol:
-                raise IOerror('Exceed allowed attemps')
+                raise IOError('Exceed allowed attemps')
             else:
                 ctr += 1
 
