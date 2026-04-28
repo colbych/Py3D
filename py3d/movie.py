@@ -13,12 +13,18 @@ class Movie(object):
                  param_file=None,
                  path='./',
                  name_style='p3d',
-                 verbose=False):
+                 verbose=False,
+                 interactive=True):
         """ Initlize a movie object
+
+            interactive (bool) :: if False, raise on missing files / invalid
+                num instead of prompting on stdin. Default True preserves
+                the original interactive behavior for notebook use.
         """
 
-        self._verbose   = verbose
-        
+        self._verbose     = verbose
+        self._interactive = interactive
+
         if param_file is None:
             param_file = self.guess_param_file(path)
 
@@ -35,7 +41,8 @@ class Movie(object):
         """
         self._name_sty  = 'movie.{0}.{1}'
         self.path       = self._get_movie_path(path)
-        self.param      = load_param(param_file, path=self.path)
+        self.param      = load_param(param_file, path=self.path,
+                                     interactive=self._interactive)
         self.num        = self._get_movie_num(num)
         self.movie_vars = self._get_movie_vars()
         self.log        = self._load_log()
@@ -48,7 +55,8 @@ class Movie(object):
         """
         self._name_sty  = '{0}'
         self.path       = path
-        self.param      = load_param(param_file, path=self.path)
+        self.param      = load_param(param_file, path=self.path,
+                                     interactive=self._interactive)
         self.num        = '999'
         self.movie_vars = self._get_movie_vars()
         self.log        = self._load_log()
@@ -87,6 +95,11 @@ class Movie(object):
             return not time_in_file
         
         while  slc is None and time_not_in_file(time):
+            if not self._interactive:
+                raise ValueError(
+                    "time {0} not in range [0, {1}]; pass time= "
+                    "explicitly when interactive=False".format(
+                        time, self.ntimes - 1))
             if time is None:
                 msg = "Enter time between 0-{0}: ".format(self.ntimes-1)
             else:
@@ -314,18 +327,23 @@ class Movie(object):
         attempt_tol = 5
         path = os.path.abspath(path)
         #choices = glob.glob(path + self._name_sty.format('log', '*'))
-        choices = glob.glob(os.path.join(path, 
+        choices = glob.glob(os.path.join(path,
                   self._name_sty.format('log', '*')))
+
+        if not choices and not self._interactive:
+            raise FileNotFoundError(
+                "No movie log files ({}) found in {}".format(
+                    self._name_sty.format('log', '*'), path))
 
         c = 0
         while not choices and c < attempt_tol:
             print('='*20 + ' No movie files found ' + '='*20)
             path = os.path.abspath(input('Please Enter Path: '))
-            choices = glob.glob(os.path.join(path, 
+            choices = glob.glob(os.path.join(path,
                       self._name_sty.format('log', '*')))
             c += 1
 
-        assert choices, 'No movie log files found!' 
+        assert choices, 'No movie log files found!'
 
         return path
 
@@ -333,17 +351,22 @@ class Movie(object):
 
     def _get_movie_num(self,num):
 
-        choices = glob.glob(os.path.join(self.path, 
+        choices = glob.glob(os.path.join(self.path,
                                          self._name_sty.format('log', '*')))
         choices = [k[-3:] for k in choices]
 
         num = _num_to_ext(num)
 
         if num not in choices:
+            valid = [int(c) for c in choices]
+            if not self._interactive:
+                raise ValueError(
+                    "Movie num {0} not found. Valid choices: {1}".format(
+                        num, valid))
             _ =  'Select from the following possible movie numbers: '\
-                 '\n{0} '.format([int(c) for c in choices])
+                 '\n{0} '.format(valid)
             num = int(input(_))
- 
+
         return _num_to_ext(num)
 
 #======================================================

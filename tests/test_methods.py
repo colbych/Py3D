@@ -1,7 +1,14 @@
 import numpy as np
 import pytest
 
-from py3d._methods import _convert, _num_to_ext, interp_field, load_param, vprint
+from py3d._methods import (
+    _convert,
+    _get_param_file,
+    _num_to_ext,
+    interp_field,
+    load_param,
+    vprint,
+)
 
 # ---------------------------------------------------------------------------
 # _convert
@@ -96,6 +103,17 @@ def test_load_param_stores_filename(param_file):
     assert 'file' in param
 
 
+def test_load_param_non_interactive_no_file_raises(tmp_path):
+    """load_param(interactive=False) must not block on stdin when missing."""
+    with pytest.raises(FileNotFoundError):
+        load_param(param_file=None, path=str(tmp_path), interactive=False)
+
+
+def test_get_param_file_non_interactive_raises(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        _get_param_file(path=str(tmp_path), interactive=False)
+
+
 # ---------------------------------------------------------------------------
 # vprint
 # ---------------------------------------------------------------------------
@@ -124,17 +142,5 @@ def test_vprint_no_attribute(capsys):
     assert capsys.readouterr().out == ""
 
 
-# ---------------------------------------------------------------------------
-# Deferred: Movie, Dump, DumpID
-# ---------------------------------------------------------------------------
-# These classes use input() prompts and require binary simulation files.
-# They can be tested once Phase 5 refactors them to accept explicit paths.
-
-@pytest.mark.skip(reason="Movie requires binary sim files and input() prompts; revisit in Phase 5")
-def test_movie_init_stub():
-    pass
-
-
-@pytest.mark.skip(reason="Dump requires binary sim files and input() prompts; revisit in Phase 5")
-def test_dump_init_stub():
-    pass
+# Movie / Dump / DumpID tests live in test_movie.py and test_dump.py
+# (added in Phase 5c once the interactive=False API was in place).

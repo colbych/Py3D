@@ -27,17 +27,23 @@ class Dump(object):
 
     """
 
-    def __init__(self, 
+    def __init__(self,
                  num=None,
                  param_file=None,
                  path='./',
-                 verbose=False): 
-        """ Initilazition Routine for dump class 
+                 verbose=False,
+                 interactive=True):
+        """ Initilazition Routine for dump class
+
+            interactive (bool) :: if False, raise on missing files instead
+                of prompting on stdin. Default True preserves the original
+                interactive behavior for notebook use.
         """
 
         self._verbose = False
+        self._interactive = interactive
         self._set_dump_path(path)
-        self.param = load_param(param_file, path)
+        self.param = load_param(param_file, path, interactive=interactive)
         self.set_dump_num(num)
         self._set_part_dtype()
         self._tags = False
@@ -57,11 +63,16 @@ class Dump(object):
         num = _num_to_ext(num)
 
         if num not in choices:
-            
+            valid = [int(cho) for cho in choices]
+            if not self._interactive:
+                raise ValueError(
+                    "Dump num {0} not found. Valid choices: {1}".format(
+                        num, valid))
+
             _ =  'Select from the following possible dump file numbers:' \
-                 '\n{0} '.format([int(cho) for cho in choices])
+                 '\n{0} '.format(valid)
             num = int(input(_))
- 
+
         self.num = _num_to_ext(num)
 
         return None
@@ -219,14 +230,18 @@ class Dump(object):
         choices =  get_choices(path)
         vprint(self, path)
 
+        if not choices and not self._interactive:
+            raise FileNotFoundError(
+                "No dump files (p3d-001.*) found in {}".format(path))
+
         c = 0
         while not choices and c < attempt_tol:
             print('='*20 + ' No dump files found ' + '='*20)
             path = os.path.abspath(input('Please Enter Path: '))
             choices =  get_choices(path)
-            c =+ 1
+            c += 1
 
-        assert choices, 'No dump files found!' 
+        assert choices, 'No dump files found!'
 
         self.path = path
 

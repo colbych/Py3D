@@ -4,7 +4,7 @@
 
 Py3D is a Python library for reading, analyzing, and visualizing particle-in-cell (PIC) plasma simulation data from the P3D simulation code. It is a research/academic codebase developed by Colby Haggerty, primarily targeting interactive use in IPython/Jupyter notebooks on HPC systems (e.g., NCAR Cheyenne/Yellowstone).
 
-The codebase has been modernized (Python 3, pip-installable, pytest suite, ruff linting) while keeping the research-library character intact. See `PLAN.md` for the active development roadmap.
+The codebase has been modernized (Python 3, pip-installable, pytest suite, ruff linting, non-interactive API) while keeping the research-library character intact. See `PLAN.md` for the active development roadmap.
 
 ---
 
@@ -37,7 +37,9 @@ Py3D/
 │   ├── conftest.py          # Shared fixtures
 │   ├── test_methods.py      # Tests for py3d._methods
 │   ├── test_sub.py          # Tests for py3d.sub utility functions
-│   └── test_vdist.py        # Tests for py3d.vdist.VDist
+│   ├── test_vdist.py        # Tests for py3d.vdist.VDist
+│   ├── test_movie.py        # Tests for py3d.movie.Movie (Phase 5)
+│   └── test_dump.py         # Tests for py3d.dump.Dump and dumpID.DumpID (Phase 5)
 │
 ├── pyproject.toml           # Package metadata, dependencies, tool config
 ├── README.txt               # Setup instructions
@@ -54,17 +56,20 @@ Loads time-series ("movie") simulation output.
 - Supports two naming conventions: `'p3d'` (default) and `'tulasi'`
 - Key method: `get_fields(t, *field_names)` — returns dict of numpy arrays at timestep `t`
 - Auto-discovers parameter files via `load_param()`
+- `interactive=True` (default) preserves original notebook behavior; pass `interactive=False` to raise instead of prompting on stdin (required for scripts/batch jobs)
 
 ### `py3d.Dump` (`dump.py`)
 Low-level reader for P3D binary dump files.
 - Parses custom binary format using Python's `struct` module
 - Methods: `read_particles()`, `read_fields()`
 - Handles both particle phase-space data and field data
+- Accepts `interactive=False` for non-interactive use (same pattern as `Movie`)
 
 ### `py3d.DumpID` (`dumpID.py`)
 Higher-level wrapper around `Dump` with spatial selection.
 - Method `get_part_in_box(box)` — filters particles within a spatial box
 - Supports coordinate rotation and transformation
+- Accepts `interactive=False`, forwarded to the inner `Dump`
 
 ### `py3d.VDist` / `py3d.VDistPlotter`
 Velocity distribution analysis and plotting.
@@ -202,12 +207,18 @@ gcc -O3 -shared -fPIC -o functions_rel.so functions_rel.c
 ```
 
 ### Running Code
-This library is designed for interactive use:
+Interactive use (notebook/REPL — prompts for missing paths):
 ```python
 import py3d
 m = py3d.Movie('/path/to/simulation/')
 d = m.get_fields(10, 'bx', 'by', 'bz', 'ex')
 py3d.ims(d, 'bx')
+```
+
+Non-interactive use (scripts, batch jobs — raises instead of prompting):
+```python
+m = py3d.Movie(path='/path/to/sim/', num=0, param_file='p3d.in', interactive=False)
+d = m.get_fields('bx by bz', time=10)
 ```
 
 ### Linting
@@ -242,21 +253,25 @@ Tests live in `tests/`. Pure functions and synthetic-data tests are fully covere
 
 ## Known Issues / Gotchas
 
-1. **Interactive prompts**: `Movie`, `Dump`, and `DumpID` call `input()` to ask for file paths when none are provided. This breaks non-interactive use (scripts, batch jobs). A backward-compatible fix (adding optional path/num arguments) is the next planned work — see `PLAN.md`.
-2. **`spec1d` uses removed NumPy API**: `VDist.spec1d` calls `np.histogram2d(normed=True)`, which was removed in NumPy 2.0. Must be changed to `density=True` before the test can be un-skipped. See `PLAN.md`.
-3. **C extensions**: `PartTrace` will silently fail or produce wrong results if `.so` files are not compiled for the current platform.
-4. **Commented-out print statements**: Several files contain old Python 2 `print 'foo'` statements in comments — these are harmless but noisy. Do not mistake them for active code.
+1. **Interactive prompts** *(mitigated in Phase 5)*: `Movie`, `Dump`, and `DumpID` still default to `interactive=True`, which calls `input()` when files are not found. Pass `interactive=False` to get a clean `FileNotFoundError`/`ValueError` instead. The `input()` fallback is preserved for backward compatibility in notebooks.
+2. **C extensions**: `PartTrace` will silently fail or produce wrong results if `.so` files are not compiled for the current platform.
+3. **Commented-out print statements**: Several files contain old Python 2 `print 'foo'` statements in comments — these are harmless but noisy. Do not mistake them for active code.
 
 ---
 
 ## Deferred Testing Work
 
-These items are explicitly out of scope for the current test suite and should be revisited in later phases:
+Items still out of scope for the current test suite:
 
 | Item | Reason deferred | Target phase |
 |------|----------------|--------------|
-| `Movie`, `Dump`, `DumpID` unit tests | Classes use `input()` prompts and require binary simulation files. Need Phase 5 refactor to accept explicit paths before they are testable. | Phase 5 |
-| Plotting functions (`ims`, `PatPlotter.make_plots`, `VDistPlotter.plot2d`) | Produce matplotlib figures. Require visual regression tooling (e.g. `pytest-mpl`) to test meaningfully. | Post-Phase 4 |
-| `VDist.spec1d` (full test) | Uses `np.histogram2d(normed=True)` removed in NumPy 2.0. Tests are marked `xfail`. Fix the call to `density=True` first. | Phase 5 |
-| `PartTrace.TPRun` integration tests | Requires compiled C extensions (`functions.so`, `functions_rel.so`). Need a CI build step to compile them. | Phase 4 CI |
+| Plotting functions (`ims`, `PatPlotter.make_plots`, `VDistPlotter.plot2d`) | Produce matplotlib figures. Require visual regression tooling (e.g. `pytest-mpl`) to test meaningfully. | Post-Phase 5 |
+| `PartTrace.TPRun` integration tests | Requires compiled C extensions (`functions.so`, `functions_rel.so`). Need a CI build step to compile them. | Phase 6 |
 | `DumpPartCompare/` MPI tests | Requires an MPI runtime. Integration-test territory, not unit tests. | Out of scope |
+
+Items completed in Phase 5:
+
+| Item | Resolution |
+|------|-----------|
+| `Movie`, `Dump`, `DumpID` unit tests | Added `interactive=False` API; error-path and constructor tests in `tests/test_movie.py` and `tests/test_dump.py` |
+| `VDist.spec1d` (full test) | Fixed `normed=True` → `density=True`; xfail marks removed; tests pass on NumPy 2.x |

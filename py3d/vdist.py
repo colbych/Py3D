@@ -192,7 +192,7 @@ class VDist(object):
 
         H, x_edge, y_edge = np.histogram2d(pts[dir][ind],
                                            KE[ind],
-                                           normed=True,
+                                           density=True,
                                            **kwargs)
 
         ind_parts = (pts[dir][ind] > x_edge[0]) & \

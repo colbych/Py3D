@@ -105,11 +105,6 @@ def test_vdist2d_pitch_different_angles_differ(vdist, particle_velocities):
 # spec1d
 # ---------------------------------------------------------------------------
 
-# spec1d calls np.histogram2d with normed=True, which was removed in NumPy
-# 2.0 (deprecated since 1.24). The parameter should be changed to density=True.
-# Tracked as deferred work: see CLAUDE.md "Deferred Testing Work".
-
-@pytest.mark.xfail(reason="spec1d uses removed normed=True kwarg (NumPy >= 2.0); fix in Phase 5")
 def test_spec1d_shape(vdist, particle_velocities):
     v = particle_velocities
     n = len(v['v1'])
@@ -125,7 +120,6 @@ def test_spec1d_shape(vdist, particle_velocities):
     assert xe.shape[0] == ye.shape[0]
 
 
-@pytest.mark.xfail(reason="spec1d uses removed normed=True kwarg (NumPy >= 2.0); fix in Phase 5")
 def test_spec1d_all_directions(vdist, particle_velocities):
     """spec1d should run for dir='x', 'y', 'z' without error."""
     v = particle_velocities

@@ -1,16 +1,20 @@
 import os
 import numpy as np
 
-def load_param(param_file=None, path=''):
+def load_param(param_file=None, path='', interactive=True):
     """ Method to load in the param file for a given run
         It will try and then ask for where the file is. if it doent know
+
+        interactive (bool) :: if False, raise FileNotFoundError instead of
+            prompting for the param file path on stdin. Default True
+            preserves the original interactive behavior.
     """
 # Add a try catch statment incase you cant find the file
 
     param = {'file': param_file}
 
     if param['file'] is None:
-        param['file'] = _get_param_file(path)
+        param['file'] = _get_param_file(path, interactive=interactive)
     else:
         param['file'] = os.path.join(path, param['file'])
 
@@ -43,7 +47,13 @@ def load_param(param_file=None, path=''):
     return param
 
 
-def _get_param_file(path=''):
+def _get_param_file(path='', interactive=True):
+    if not interactive:
+        raise FileNotFoundError(
+            "No param_file specified and interactive=False; "
+            "pass param_file= explicitly. Path searched: {}".format(
+                os.path.abspath(os.path.expandvars(path)) if path else '(none)'))
+
     fname = input('Please enter param file: ')
     fname = os.path.join(path, fname.strip())
     fname = os.path.abspath(os.path.expandvars(fname))

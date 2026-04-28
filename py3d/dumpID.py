@@ -23,14 +23,16 @@ class DumpID(object):
                 
     """
 
-    def __init__(self, 
+    def __init__(self,
                  num=None,
                  param_file=None,
                  path='./',
-                 verbose=False):
+                 verbose=False,
+                 interactive=True):
 
         self._verbose = False
-        self.dump = Dump(num, param_file, path)
+        self._interactive = interactive
+        self.dump = Dump(num, param_file, path, interactive=interactive)
         self.param = self.dump.param
 
     def read_fields(self):
