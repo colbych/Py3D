@@ -4,7 +4,7 @@
 
 Py3D is a Python library for reading, analyzing, and visualizing particle-in-cell (PIC) plasma simulation data from the P3D simulation code. It is a research/academic codebase developed by Colby Haggerty, primarily targeting interactive use in IPython/Jupyter notebooks on HPC systems (e.g., NCAR Cheyenne/Yellowstone).
 
-There is no formal packaging, CI/CD, or test suite — this is intentional for a research library.
+The codebase has been modernized (Python 3, pip-installable, pytest suite, ruff linting) while keeping the research-library character intact. See `PLAN.md` for the active development roadmap.
 
 ---
 
@@ -33,7 +33,15 @@ Py3D/
 │   ├── exe_partID.LSF       # LSF job submission script
 │   └── exe_partID.cheyenne  # Cheyenne job submission script
 │
-├── README.txt               # Legacy setup instructions
+├── tests/                   # pytest test suite
+│   ├── conftest.py          # Shared fixtures
+│   ├── test_methods.py      # Tests for py3d._methods
+│   ├── test_sub.py          # Tests for py3d.sub utility functions
+│   └── test_vdist.py        # Tests for py3d.vdist.VDist
+│
+├── pyproject.toml           # Package metadata, dependencies, tool config
+├── README.txt               # Setup instructions
+├── PLAN.md                  # Active development roadmap
 └── CLAUDE.md                # This file
 ```
 
@@ -114,12 +122,12 @@ Exported via `from py3d import *`:
 | Package | Purpose |
 |---|---|
 | `numpy` | Core numerical arrays |
-| `scipy` | Interpolation, IDL `.sav` file reading (`scipy.io.idl`) |
+| `scipy` | Interpolation, IDL `.sav` file reading (`scipy.io.readsav`) |
 | `matplotlib` | Plotting and visualization |
 | `ctypes` | Interface to C extensions in `PartTrace/` |
-| `mpi4py` | MPI parallelism (only in `DumpPartCompare/`) |
+| `mpi4py` | MPI parallelism (only in `DumpPartCompare/`) — optional `[hpc]` extra |
 
-No `requirements.txt` exists. Install dependencies manually or via conda/pip.
+Dependencies are declared in `pyproject.toml`. Install with `pip install -e .`.
 
 ---
 
@@ -202,6 +210,13 @@ d = m.get_fields(10, 'bx', 'by', 'bz', 'ex')
 py3d.ims(d, 'bx')
 ```
 
+### Linting
+```bash
+ruff check py3d/ PartTrace/testparticle.py
+```
+
+Run this before committing. Configuration lives in `[tool.ruff]` in `pyproject.toml`. The rule set is `E` + `F` with a short ignore list for intentional style patterns (see the file for details).
+
 ### Running Tests
 ```bash
 pip install -e ".[dev]"
@@ -227,10 +242,10 @@ Tests live in `tests/`. Pure functions and synthetic-data tests are fully covere
 
 ## Known Issues / Gotchas
 
-1. **Python 2→3 migration**: The codebase was originally Python 2. Some legacy patterns may remain (e.g., `print` statement style comments, `input()` usage).
-2. **Interactive prompts**: Several classes (`Movie`, `Dump`, `DumpID`) call `input()` to ask the user for file paths; avoid in non-interactive contexts. Refactor planned for Phase 5.
+1. **Interactive prompts**: `Movie`, `Dump`, and `DumpID` call `input()` to ask for file paths when none are provided. This breaks non-interactive use (scripts, batch jobs). A backward-compatible fix (adding optional path/num arguments) is the next planned work — see `PLAN.md`.
+2. **`spec1d` uses removed NumPy API**: `VDist.spec1d` calls `np.histogram2d(normed=True)`, which was removed in NumPy 2.0. Must be changed to `density=True` before the test can be un-skipped. See `PLAN.md`.
 3. **C extensions**: `PartTrace` will silently fail or produce wrong results if `.so` files are not compiled for the current platform.
-4. **`spec1d` uses deprecated `normed=True`**: `VDist.spec1d` calls `np.histogram2d(normed=True)`, removed in NumPy 2.0. Should be changed to `density=True`. Tracked in Deferred Testing Work below.
+4. **Commented-out print statements**: Several files contain old Python 2 `print 'foo'` statements in comments — these are harmless but noisy. Do not mistake them for active code.
 
 ---
 
