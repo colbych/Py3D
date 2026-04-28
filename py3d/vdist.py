@@ -14,7 +14,7 @@ import struct
 import glob
 import pdb
 import warnings
-from scipy.io.idl import readsav
+from scipy.io import readsav
 from scipy.ndimage import gaussian_filter
 
 class VDist(object):

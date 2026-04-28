@@ -102,9 +102,9 @@ class TPRun:
         # checks the time interval is well defined
         #----------------------------------------------------------------------
         if t0 < self.tstart or t0 > self.tend:
-            print 'time (%5.3f) should be between tstart(%5.3f)\
-                   and tend(%5.3f) (both included)' \
-                   % (t0 ,self.tstart,self.tend)
+            print('time (%5.3f) should be between tstart(%5.3f)'
+                  ' and tend(%5.3f) (both included)'
+                  % (t0, self.tstart, self.tend))
 
             return None
         #----------------------------------------------------------------------
@@ -273,15 +273,15 @@ class TPRun:
         # the following function will move all the particles
         # for all time steps
         if self._is3D:
-            print 'calling _moveall3D'
+            print('calling _moveall3D')
             self._moveall3D()
-            print 'calling _pfields3D'
+            print('calling _pfields3D')
             self._pfields3D()
 
         else:
-            print 'calling _moveall'
+            print('calling _moveall')
             self._moveall()
-            print 'calling _pfields'
+            print('calling _pfields')
             self._pfields()
 
     #==========================================================
@@ -386,7 +386,7 @@ class TPRun:
         yc = self._CR['yy'][0] - .5*self._dy
         zc = self._CR['zz'][0] - .5*self._dz
         
-        print 'Going in!'
+        print('Going in!')
         func(self.r,
              self.v,
              self._E,
@@ -616,7 +616,7 @@ class TPRun:
         Creation : 2013-05-01 11:21:19.671182
 
         """
-        print 'Loading particles in a spatially uniform random distribution...'
+        print('Loading particles in a spatially uniform random distribution...')
 
         self._r0  = np.zeros((3, self._npart))
 
@@ -663,7 +663,7 @@ class TPRun:
         Creation : 2013-05-01 11:21:19.671182
 
         """
-        print 'Loading particles in a spatially uniform random distribution...'
+        print('Loading particles in a spatially uniform random distribution...')
 
         self._r0  = np.zeros((3, self._npart))
 
@@ -715,7 +715,7 @@ class TPRun:
         Creation : 2013-05-01 11:21:19.671182
 
         """
-        print 'Loading particles in a spatially uniform random distribution...'
+        print('Loading particles in a spatially uniform random distribution...')
 
         self._r0  = np.zeros((3, self._npart))
 
@@ -769,7 +769,7 @@ class TPRun:
         Creation : 2013-05-01 11:21:19.671182
 
         """
-        print 'Loading particles in a spatially gaussian random distribution...'
+        print('Loading particles in a spatially gaussian random distribution...')
 
         self._r0  = np.zeros((3, self._npart))
 

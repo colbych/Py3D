@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.io.idl import readsav 
+from scipy.io import readsav
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import AutoMinorLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -1086,7 +1086,7 @@ def calc_pdf(ar, pdf_min=None, pdf_max=None, weight=100, inc=0, ax=0):
     
     # Find the total length of data set
     # Also this used to use the operator module, but I didn't like that
-    arsize = reduce(lambda x,y: x*y, np.shape(ar),1)
+    arsize = np.prod(np.shape(ar))
 
     # Find the RMS value of data set and normalize to it.
     rmsval = np.sqrt(np.mean(ar**2))
