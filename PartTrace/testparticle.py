@@ -10,8 +10,6 @@ from numpy.ctypeslib import ndpointer
 import ctypes
 
 # for plotting routines
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 class TPRun:
     """
@@ -167,7 +165,7 @@ class TPRun:
         # interval
 #cc# Right now we are just assuming that we have an idl file correctly loaded in
 #cc# This would be a good point to add in stuf that would use the p3d run object
-        if self._fldinterp == False:
+        if not self._fldinterp:
             #self._E = np.concatenate(([CR['exav']],[CR['eyav']],[CR['ezav']]), axis=0)
             #self._B = np.concatenate(([CR['bxav']],[CR['byav']],[CR['bzav']]), axis=0)
 
@@ -231,7 +229,7 @@ class TPRun:
         # in case we want to debug, use analytic fields
         debug = False
 
-        if debug == True:
+        if debug:
             self._B[0,:,:]  = 0.#1. + np.random.randn(self._B.shape[1],self._B.shape[2])*1e-3
             self._B[1,:,:]  = 0.#np.random.randn(self._B.shape[1],self._B.shape[2])*1e-3
             self._B[2,:,:]  = 1.#np.random.randn(self._B.shape[1],self._B.shape[2])*1e-3
@@ -580,7 +578,7 @@ class TPRun:
         vmag = 0.0
         for v_i in v:
             vmag = vmag+v_i**2
-        vmag = sqrt(vmag)
+        vmag = np.sqrt(vmag)
         rmag = np.random.random(self._npart)
         for v_i in v:
             self._v0[c,:] = dv*rmag*v_i/vmag

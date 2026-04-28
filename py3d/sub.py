@@ -1,8 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import readsav
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.ticker import AutoMinorLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from .movie import Movie
 from .dumpID import DumpID
@@ -417,7 +415,7 @@ def check_energy_conservation(mov_num=0,
     print('Loading Energy from p3d.stdout.000...')
     try:
         engs = show_energy('p3d.stdout.000').astype(float)
-    except:
+    except Exception:
         print('p3d.stdout.000 file not found!')
         return None
 
@@ -434,7 +432,7 @@ def check_energy_conservation(mov_num=0,
         di = M.get_fields(vs, init_time, slc=slc)
         df = M.get_fields(vs, final_time, slc=slc)
 
-    except:
+    except Exception:
         print('Moive did not load properly! Exiting!!!')
         return None
     
@@ -748,8 +746,8 @@ def plot_line(itcpt,dir='y',ax=None,**kwargs):
     if ax is None:
         ax = plt.gca()
     
-    xarr = array(ax.get_xlim())
-    yarr = array(ax.get_ylim())
+    xarr = np.array(ax.get_xlim())
+    yarr = np.array(ax.get_ylim())
 
     if dir == 'x':
         yarr = yarr*0.0 + itcpt

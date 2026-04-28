@@ -1,5 +1,4 @@
 import os
-import pdb
 import glob
 import numpy as np
 from ._methods import load_param
@@ -306,7 +305,7 @@ class Movie(object):
                 except OSError:
                     pass
 
-            raise ShouldNotGetHereError()
+            raise RuntimeError("Could not determine number of timesteps")
 
 #======================================================
 

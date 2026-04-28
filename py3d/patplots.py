@@ -6,7 +6,6 @@ from .sub import rotate_ten
 from .sub import calc_psi
 from .sub import date_file_prefix
 from .sub import guess_param_file
-import pdb
 #import _methods
 
 class PatPlotter(object):
@@ -144,8 +143,8 @@ class PatPlotter(object):
     def _plot2D_set_lims(self, xy_lims):
         if xy_lims:
             for a in self.ax:
-                a.set_xlim(xy_lim[0])
-                a.set_ylim(xy_lim[1])
+                a.set_xlim(xy_lims[0])
+                a.set_ylim(xy_lims[1])
 
 
 #========================================
@@ -155,7 +154,6 @@ class PatPlotter(object):
               self.d[2*self._not_cut_dir][0])
         
         if cut_locs is None:
-            ncuts = 25
             #xpcs = np.arange(4.6, 6., .1)
             xpcs = np.arange(10)/10.*ll
 
@@ -222,7 +220,7 @@ class PatPlotter(object):
         _xy = self.d[2*self._cut_dir]
         _lim = _xy[[0,-1]]
         _cut_index = np.s_[ip,:]
-        if self._cut_dir is 'x': _cut_index = _cut_index[::-1]
+        if self._cut_dir == 'x': _cut_index = _cut_index[::-1]
 
         lines = []
         for a,vrs,labs in zip(self.ax, self.page_vars_1D, var_labels):
@@ -311,7 +309,6 @@ class PatPlotter(object):
 #========================================
 
     def _load_movie(self, time, slc):
-        mvars = 'all'
         d = self._M.get_fields('all', time, slc=slc)
 
         # This is dumb and should be done in moive
@@ -332,9 +329,7 @@ class PatPlotter(object):
             for k in 'xyz':
                 d['v'+s+k] = q*d['j'+s+k]/d['n'+s]
             
-            mag = lambda _x,_y: _x**2 + _y**2
-
-            #d['|b|'] = np.sqrt(reduce(mag, (d['b'+k] for k in'xyz')))
+            #d['|b|'] = np.sqrt(reduce(lambda _x,_y: _x**2+_y**2, (d['b'+k] for k in'xyz')))
             d['|b|'] = np.sqrt(d['bx']**2 + d['by']**2 + d['bz']**2)
 
             d['psi'] = gf(calc_psi(d), sigma=self.sig)

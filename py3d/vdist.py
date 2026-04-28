@@ -6,16 +6,8 @@
 #                                                                     #
 #                                                                     #
 #######################################################################
-import os
-import sys 
-import datetime
 import numpy as np
-import struct
-import glob
-import pdb
 import warnings
-from scipy.io import readsav
-from scipy.ndimage import gaussian_filter
 
 class VDist(object):
     """ velocity distribution fucntion calculator
@@ -132,7 +124,7 @@ class VDist(object):
 
     def _get_gamma(self, v1, v2, v3, v_light):
         v2 = v1**2 + v2**2 + v3**2
-        c2 = v_light**2
+        # incomplete: relativistic gamma not yet implemented
 
 
     def spec1d(self,
@@ -217,8 +209,8 @@ class VDist(object):
 # I stole this from EFlux code, I dont remeber why we do this
 # so you know, use at your own risk
             warn_msg = 'Relativistic energy code implemented without '+\
-                       'though: Use with caution!!!'
-            warnings.warn(msg)
+                       'thought: Use with caution!!!'
+            warnings.warn(warn_msg)
             Ebar = eng/mass/v_light**2
             rel_vel = np.sqrt((Ebar**2 + 2.*Ebar)/(Ebar**2 + 2.*Ebar + 1.))
             rel_vel = rel_vel*v_light
