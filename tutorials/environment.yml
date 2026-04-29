@@ -1,0 +1,25 @@
+name: py3d-tutorial
+
+# Conda environment for the Py3D tutorials.
+#
+# Create the env:
+#     conda env create -f environment.yml
+#     conda activate py3d-tutorial
+#
+# Then install py3d itself in editable mode (from the repo root):
+#     pip install -e ..
+#
+# Pins are intentionally loose. The tutorials work on current NumPy 2.x
+# and matplotlib >=3. Tighten only if you need to reproduce a specific
+# scientific result.
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python>=3.9
+  - numpy
+  - scipy
+  - matplotlib
+  - jupyter        # only needed to run the .ipynb notebooks
+  - pip

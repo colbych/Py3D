@@ -24,6 +24,10 @@ include = ["py3d*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "slow: tests that take more than a couple of seconds (skipped by default; enable with `-m slow`)",
+]
+addopts = "-m 'not slow'"
 
 [tool.ruff.lint]
 select = ["E", "F"]

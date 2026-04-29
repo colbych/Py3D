@@ -87,3 +87,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Tutorial-generated artifacts
+tutorials/scripts/*.png
